@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Polska Meme Lab</title>
+
+    <!-- Google Fonts & Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+    <!-- CSS / Tailwind & html2canvas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Import Map for Material Web -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@material/web/": "https://esm.run/@material/web/"
+        }
+    }
+    </script>
+
+    <style>
+        /* * Material 3 Design Tokens - Google Blue & Crimson Polska Red
+         */
+        :root {
+            /* Light Mode Tokens */
+            --md-sys-color-primary: #dc2626; /* Changed to Polish red-vibe for Polish Lab */
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #fee2e2;
+            --md-sys-color-on-primary-container: #991b1b;
+            --md-sys-color-secondary: #0b57d0; /* Blue integrated as secondary */
+            --md-sys-color-on-secondary: #ffffff;
+            --md-sys-color-secondary-container: #d3e3fd;
+            --md-sys-color-on-secondary-container: #041e49;
+            --md-sys-color-tertiary: #b45309;
+            --md-sys-color-on-tertiary: #ffffff;
+            --md-sys-color-background: #fafafa;
+            --md-sys-color-on-background: #1c1b1f;
+            --md-sys-color-surface: #ffffff;
+            --md-sys-color-on-surface: #1c1b1f;
+            --md-sys-color-surface-variant: #f4f4f5;
+            --md-sys-color-on-surface-variant: #44474e;
+            --md-sys-color-outline: #74777f;
+            --md-sys-color-outline-variant: #c4c6d0;
+            --md-sys-color-error: #ba1a1a;
+            --md-sys-color-on-error: #ffffff;
+            
+            /* Typography */
+            --md-ref-typeface-brand: 'Google Sans', sans-serif;
+            --md-ref-typeface-plain: 'Roboto', sans-serif;
+
+            --transition-duration: 0.3s;
+        }
+
+        /* Dark Mode Override */
+        [data-theme="dark"] {
+            --md-sys-color-primary: #ffb4ab;
+            --md-sys-color-on-primary: #690005;
+            --md-sys-color-primary-container: #93000a;
+            --md-sys-color-on-primary-container: #ffdad6;
+            --md-sys-color-secondary: #a8c7fa;
+            --md-sys-color-on-secondary: #062e6f;
+            --md-sys-color-secondary-container: #0842a0;
+            --md-sys-color-on-secondary-container: #d3e3fd;
+            --md-sys-color-background: #121212;
+            --md-sys-color-on-background: #e6e1e5;
+            --md-sys-color-surface: #1e1e1e;
+            --md-sys-color-on-surface: #e6e1e5;
+            --md-sys-color-surface-variant: #2d2d30;
+            --md-sys-color-on-surface-variant: #c4c6d0;
+            --md-sys-color-outline: #8e9099;
+            --md-sys-color-outline-variant: #44474e;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--md-ref-typeface-plain);
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
+            transition: background-color var(--transition-duration), color var(--transition-duration), margin-left 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        header {
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        header h1 {
+            margin: 0;
+            font-family: var(--md-ref-typeface-brand);
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        main {
+            flex: 1;
+            padding: 16px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            padding-bottom: 100px;
+            transition: padding-bottom 0.3s;
+        }
+
+        /* View Management */
+        .view-section {
+            display: none;
+            animation: fadeScale 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeScale {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-card {
+            background-color: var(--md-sys-color-surface);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .section-title {
+            font-family: var(--md-ref-typeface-brand);
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--md-sys-color-primary);
+        }
+
+        /* Custom Navigation */
+        .custom-nav {
+            position: fixed;
+            background-color: var(--md-sys-color-surface);
+            display: flex;
+            align-items: center;
+            z-index: 100;
+            transition: all 0.3s ease;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            justify-content: space-evenly;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            height: 100%;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            user-select: none;
+        }
+
+        .nav-icon-container {
+            width: 64px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 16px;
+            margin-bottom: 4px;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .nav-item .material-symbols-outlined {
+            font-size: 24px;
+            font-variation-settings: 'FILL' 0;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item.active .nav-icon-container {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .nav-item.active .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        @media (min-width: 600px) {
+            body { margin-left: 80px; }
+            main { padding-bottom: 32px; }
+            .custom-nav {
+                top: 0; bottom: 0; left: 0; right: auto;
+                width: 80px; height: 100%; flex-direction: column;
+                justify-content: flex-start; padding-top: 32px;
+                border-top: none;
+                border-right: 1px solid var(--md-sys-color-outline-variant);
+            }
+            .nav-item { flex: none; height: 72px; width: 100%; margin-bottom: 12px; }
+        }
+
+        /* Meme Editing Workspace styles */
+        #meme-workspace-container {
+            position: relative;
+            background: #27272a;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none; /* Prevents viewport zooming/scrolling while dragging inside workspace */
+        }
+
+        #meme-canvas-area {
+            position: relative;
+            background: #3f3f46;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            overflow: hidden;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1; /* Always square for optimal memes, dynamic size managed by JS */
+        }
+
+        #meme-bg-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .meme-element {
+            position: absolute;
+            user-select: none;
+            touch-action: none;
+            cursor: move;
+            border: 2px dashed transparent;
+            padding: 4px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .meme-element.active {
+            border-color: var(--md-sys-color-primary);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .element-control-btn {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--md-sys-color-primary);
+            color: #ffffff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .meme-element.active .element-control-btn {
+            display: flex;
+        }
+
+        .delete-btn-handler {
+            top: -12px;
+            right: -12px;
+            background: #ef4444;
+        }
+
+        .resize-btn-handler {
+            bottom: -12px;
+            right: -12px;
+            background: #3b82f6;
+            cursor: nwse-resize;
+        }
+
+        .meme-element-text {
+            text-shadow: 2px 2px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 0px 0px #000, 0px -2px 0px #000, -2px 0px 0px #000;
+            color: #ffffff;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.1;
+        }
+
+        .meme-element-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        /* Custom styles for Material components to make sure they align nicely */
+        md-dialog {
+            --md-dialog-container-color: var(--md-sys-color-surface);
+        }
+        
+        /* App Notification Toast */
+        #toast {
+            position: fixed;
+            bottom: 96px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #322f35;
+            color: #f5eff7;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s;
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <md-icon-button><span class="material-symbols-outlined">menu</span></md-icon-button>
+            <h1 class="flex items-center gap-2 font-bold text-red-600 dark:text-red-400">
+                <span class="material-symbols-outlined">science</span> Polska Meme Lab
+            </h1>
+        </div>
+        <div style="display:flex; align-items:center;">
+            <md-icon-button onclick="window.toggleDarkMode()">
+                <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+            </md-icon-button>
+            <md-icon-button id="usage-anchor">
+                <span class="material-symbols-outlined">info</span>
+            </md-icon-button>
+            <md-menu anchor="usage-anchor" id="usage-menu">
+                <md-menu-item onclick="window.showAbout()">
+                    <div slot="headline">About Polska Meme Lab</div>
+                </md-menu-item>
+                <md-menu-item onclick="window.switchTab('editor')">
+                    <div slot="headline">Jump to Editor</div>
+                </md-menu-item>
+            </md-menu>
+        </div>
+    </header>
+
+    <main>
+        <!-- TEMPLATES VIEW -->
+        <section id="view-templates" class="view-section active">
+            <!-- Top Hero banner with Polandball character -->
+            <div class="relative bg-gradient-to-r from-red-600 to-red-500 text-white rounded-3xl p-6 mb-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md overflow-hidden">
+                <div class="z-10 flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="bg-white text-red-600 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">POLAND STRONK!</span>
+                    </div>
+                    <h2 class="text-3xl font-extrabold tracking-tight mb-2 font-serif">Polska Meme Lab</h2>
+                    <p class="text-red-100 mb-4 max-w-md">好きなミームテンプレートを選ぶか、手持ちの画像(PNG)を読み込んで最強のポーランドボール＆オリジナルミームを作ろう！</p>
+                    <div class="flex flex-wrap gap-2">
+                        <md-filled-tonal-button onclick="document.getElementById('file-loader-input').click()">
+                            <md-icon slot="icon"><span class="material-symbols-outlined">upload_file</span></md-icon>
+                            自分の画像を使う
+                        </md-filled-tonal-button>
+                        <input type="file" id="file-loader-input" accept="image/*" class="hidden" onchange="window.handleBgUpload(event)">
+                    </div>
+                </div>
+                <!-- Top Polandball mascot displayed prominent! -->
+                <div class="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 relative z-10 flex items-center justify-center bg-white/10 rounded-full p-2 backdrop-blur-sm border border-white/20 animate-bounce">
+                    <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/lol.png" 
+                         alt="Poland LOL" 
+                         onerror="this.src='https://placehold.co/150x150/ef4444/ffffff?text=Poland'"
+                         class="w-full h-full object-contain">
+                </div>
+            </div>
+
+            <!-- Predefined Polish Ball Fast Start Pack -->
+            <div class="section-card">
+                <div class="section-title flex items-center gap-2">
+                    <span class="material-symbols-outlined">stars</span> ポーランドボール・高速スタート
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">クリックしてそのボールが背景になった状態で、即時にエディタへ移動します。</p>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                    <div onclick="window.startWithBall('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/lol.png', 'Poland Lol')" class="flex flex-col items-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl cursor-pointer hover:scale-105 transition-transform border border-zinc-200 dark:border-zinc-700">
+                        <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/lol.png" class="w-12 h-12 object-contain mb-1" alt="Poland Lol">
+                        <span class="text-xs font-bold text-center">Poland (Lol)</span>
+                    </div>
+                    <div onclick="window.startWithBall('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/normal.png', 'Poland Normal')" class="flex flex-col items-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl cursor-pointer hover:scale-105 transition-transform border border-zinc-200 dark:border-zinc-700">
+                        <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/normal.png" class="w-12 h-12 object-contain mb-1" alt="Poland Normal">
+                        <span class="text-xs font-bold text-center">Poland</span>
+                    </div>
+                    <div onclick="window.startWithBall('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/germany/normal.png', 'Germany')" class="flex flex-col items-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl cursor-pointer hover:scale-105 transition-transform border border-zinc-200 dark:border-zinc-700">
+                        <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/germany/normal.png" class="w-12 h-12 object-contain mb-1" alt="Germany">
+                        <span class="text-xs font-bold text-center">Germany</span>
+                    </div>
+                    <div onclick="window.startWithBall('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/japan/normal.png', 'Japan')" class="flex flex-col items-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl cursor-pointer hover:scale-105 transition-transform border border-zinc-200 dark:border-zinc-700">
+                        <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/japan/normal.png" class="w-12 h-12 object-contain mb-1" alt="Japan">
+                        <span class="text-xs font-bold text-center">Japan</span>
+                    </div>
+                    <div onclick="window.startWithBall('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/italy/normal.png', 'Italy')" class="flex flex-col items-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl cursor-pointer hover:scale-105 transition-transform border border-zinc-200 dark:border-zinc-700">
+                        <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/italy/normal.png" class="w-12 h-12 object-contain mb-1" alt="Italy">
+                        <span class="text-xs font-bold text-center">Italy</span>
+                    </div>
+                    <div onclick="window.startWithBall('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/china/normal.png', 'China')" class="flex flex-col items-center p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl cursor-pointer hover:scale-105 transition-transform border border-zinc-200 dark:border-zinc-700">
+                        <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/china/normal.png" class="w-12 h-12 object-contain mb-1" alt="China">
+                        <span class="text-xs font-bold text-center">China</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meme Templates from Imgflip API -->
+            <div class="section-card">
+                <div class="section-title flex justify-between items-center">
+                    <span>人気のミームテンプレート</span>
+                    <md-outlined-button onclick="window.loadMemeTemplates()">
+                        <md-icon slot="icon"><span class="material-symbols-outlined">refresh</span></md-icon>
+                        更新する
+                    </md-outlined-button>
+                </div>
+                <div id="loading-indicator" class="flex flex-col items-center justify-center py-12 gap-3">
+                    <md-circular-progress indeterminate></md-circular-progress>
+                    <p class="text-sm text-zinc-500">Imgflip APIから最新テンプレートを取得中...</p>
+                </div>
+                <div id="memes-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 hidden">
+                    <!-- Templates dynamically rendered here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- EDITOR VIEW -->
+        <section id="view-editor" class="view-section">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Left Side: Interactive Workspace & Direct Controls -->
+                <div class="lg:col-span-7 flex flex-col gap-4">
+                    <div class="section-card !p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-bold text-sm tracking-wide text-zinc-500 dark:text-zinc-400">MEME WORKSPACE</span>
+                            <div class="flex items-center gap-1">
+                                <md-icon-button title="背景画像を消去" onclick="window.clearBackground()"><span class="material-symbols-outlined text-red-500">image_not_supported</span></md-icon-button>
+                                <md-icon-button title="全要素をクリア" onclick="window.clearAllCanvasElements()"><span class="material-symbols-outlined">delete_sweep</span></md-icon-button>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Workspace -->
+                        <div id="meme-workspace-container" class="w-full">
+                            <div id="meme-canvas-area">
+                                <img id="meme-bg-img" src="https://placehold.co/600x600/3f3f46/ffffff?text=Polska+Meme+Lab%5CnPlease+Select+Template" alt="Meme Background" crossorigin="anonymous">
+                                <!-- Dynamic layers / elements inserted here -->
+                            </div>
+                        </div>
+                        <p class="text-xs text-center text-zinc-500 mt-2">要素をタッチ/クリックで選択し、ドラッグで移動、角の青丸を引いて拡大縮小できます！</p>
+                    </div>
+
+                    <!-- Direct Canvas Controller Panel (Layer manipulation) -->
+                    <div class="section-card" id="element-quick-options" style="display: none;">
+                        <div class="section-title !text-sm flex items-center justify-between">
+                            <span>選択中の要素の操作</span>
+                            <md-icon-button onclick="window.deselectAll()"><span class="material-symbols-outlined">close</span></md-icon-button>
+                        </div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <md-filled-tonal-button onclick="window.moveLayer('up')">
+                                <md-icon slot="icon"><span class="material-symbols-outlined">flip_to_front</span></md-icon>
+                                前面へ
+                            </md-filled-tonal-button>
+                            <md-filled-tonal-button onclick="window.moveLayer('down')">
+                                <md-icon slot="icon"><span class="material-symbols-outlined">flip_to_back</span></md-icon>
+                                背面へ
+                            </md-filled-tonal-button>
+                            <md-filled-button class="!bg-red-500" onclick="window.deleteActiveElement()">
+                                <md-icon slot="icon"><span class="material-symbols-outlined">delete</span></md-icon>
+                                削除する
+                            </md-filled-button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Tools sidebar (Adding texts, stickers, stamps) -->
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    
+                    <!-- Text tool -->
+                    <div class="section-card">
+                        <div class="section-title flex items-center gap-2">
+                            <span class="material-symbols-outlined text-indigo-500">text_fields</span> テキスト追加
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <md-outlined-text-field id="text-input" label="ミームに打ち込む文字" placeholder="例: POLAND CANNOT INTO SPACE!" type="textarea" rows="2"></md-outlined-text-field>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex flex-col">
+                                    <label class="text-xs font-semibold mb-1 text-zinc-600 dark:text-zinc-400">文字色</label>
+                                    <input type="color" id="text-color" value="#ffffff" class="w-full h-10 border border-zinc-300 dark:border-zinc-700 rounded-lg cursor-pointer">
+                                </div>
+                                <div class="flex flex-col">
+                                    <label class="text-xs font-semibold mb-1 text-zinc-600 dark:text-zinc-400">フォントの太さ</label>
+                                    <select id="text-weight" class="h-10 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-2 text-sm">
+                                        <option value="900" selected>超極太 (Impact風)</option>
+                                        <option value="700">極太 (Bold)</option>
+                                        <option value="400">普通 (Normal)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <md-filled-button onclick="window.addTextElement()">
+                                <md-icon slot="icon"><span class="material-symbols-outlined">add</span></md-icon>
+                                キャンバスに文字を挿入
+                            </md-filled-button>
+                        </div>
+                    </div>
+
+                    <!-- Polandball Stamps Quick Insert -->
+                    <div class="section-card">
+                        <div class="section-title flex items-center gap-2">
+                            <span class="material-symbols-outlined text-red-500">sentiment_satisfied</span> 国旗ボール挿入 (スタンプ)
+                        </div>
+                        <p class="text-xs text-zinc-500 mb-3">ミームの上に追加配置できるポーランドボール国旗スタンプ（移動・リサイズ対応）</p>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button onclick="window.addStampElement('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/lol.png', 'Poland Lol')" class="flex flex-col items-center p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/lol.png" class="w-10 h-10 object-contain mb-1" alt="Poland Lol">
+                                <span class="text-[10px] font-semibold text-center">Poland (Lol)</span>
+                            </button>
+                            <button onclick="window.addStampElement('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/normal.png', 'Poland')" class="flex flex-col items-center p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/normal.png" class="w-10 h-10 object-contain mb-1" alt="Poland">
+                                <span class="text-[10px] font-semibold text-center">Poland</span>
+                            </button>
+                            <button onclick="window.addStampElement('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/germany/normal.png', 'Germany')" class="flex flex-col items-center p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/germany/normal.png" class="w-10 h-10 object-contain mb-1" alt="Germany">
+                                <span class="text-[10px] font-semibold text-center">Germany</span>
+                            </button>
+                            <button onclick="window.addStampElement('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/japan/normal.png', 'Japan')" class="flex flex-col items-center p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/japan/normal.png" class="w-10 h-10 object-contain mb-1" alt="Japan">
+                                <span class="text-[10px] font-semibold text-center">Japan</span>
+                            </button>
+                            <button onclick="window.addStampElement('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/italy/normal.png', 'Italy')" class="flex flex-col items-center p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/italy/normal.png" class="w-10 h-10 object-contain mb-1" alt="Italy">
+                                <span class="text-[10px] font-semibold text-center">Italy</span>
+                            </button>
+                            <button onclick="window.addStampElement('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/china/normal.png', 'China')" class="flex flex-col items-center p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/china/normal.png" class="w-10 h-10 object-contain mb-1" alt="China">
+                                <span class="text-[10px] font-semibold text-center">China</span>
+                            </button>
+                            <button onclick="window.addStampElement('https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/france/normal.png', 'France')" class="flex flex-col items-center p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/france/normal.png" class="w-10 h-10 object-contain mb-1" alt="France">
+                                <span class="text-[10px] font-semibold text-center">France</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Handheld Stamp Uploader -->
+                    <div class="section-card">
+                        <div class="section-title flex items-center gap-2">
+                            <span class="material-symbols-outlined text-teal-500">add_photo_alternate</span> 手持ち画像を追加 (何枚でも)
+                        </div>
+                        <p class="text-xs text-zinc-500 mb-3">ファイルピッカーから好きな画像(PNG等)を選択してミームの上に自由に配置できます。</p>
+                        <md-outlined-button onclick="document.getElementById('stamp-file-picker').click()">
+                            <md-icon slot="icon"><span class="material-symbols-outlined">attach_file</span></md-icon>
+                            手持ちPNGを選択して配置
+                        </md-outlined-button>
+                        <input type="file" id="stamp-file-picker" accept="image/*" class="hidden" multiple onchange="window.handleStampUpload(event)">
+                    </div>
+
+                    <!-- Export and Download Panel -->
+                    <div class="section-card bg-zinc-50 dark:bg-zinc-900 border-2 border-red-500">
+                        <div class="section-title flex items-center gap-2 text-red-600 dark:text-red-400">
+                            <span class="material-symbols-outlined">download</span> 保存 & ダウンロード
+                        </div>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-300 mb-4">完成したミームをレンダリングしてローカルギャラリーに保存したり、PNG画像としてダウンロードします！</p>
+                        <div class="flex flex-col gap-2">
+                            <md-filled-button class="w-full" onclick="window.renderAndSaveMeme()">
+                                <md-icon slot="icon"><span class="material-symbols-outlined">save</span></md-icon>
+                                保存してダウンロード
+                            </md-filled-button>
+                            <div class="text-center">
+                                <span class="text-[10px] text-zinc-500">※保存されると自動的にギャラリー(Gallery)タブにも追加されます。</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- GALLERY VIEW -->
+        <section id="view-gallery" class="view-section">
+            <div class="section-card">
+                <div class="section-title flex justify-between items-center">
+                    <span>作成したミームギャラリー</span>
+                    <md-outlined-button onclick="window.clearGallery()">
+                        <md-icon slot="icon"><span class="material-symbols-outlined">delete_forever</span></md-icon>
+                        ギャラリーをクリア
+                    </md-outlined-button>
+                </div>
+                <p class="text-sm text-zinc-500 mb-4">このブラウザに保存されたオリジナルのミーム作品。いつでもダウンロードできます。</p>
+                
+                <div id="gallery-empty-state" class="flex flex-col items-center justify-center py-16 text-zinc-400">
+                    <span class="material-symbols-outlined text-6xl mb-3">photo_library</span>
+                    <p class="text-sm">まだ保存したミームはありません。エディタで作成しましょう！</p>
+                </div>
+
+                <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 hidden">
+                    <!-- Saved items dynamically loaded here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- App Bottom Navigation Bar -->
+    <nav class="custom-nav">
+        <div class="nav-item active" id="nav-templates" onclick="window.switchTab('templates')">
+            <div class="nav-icon-container"><span class="material-symbols-outlined">collections</span></div>
+            <span class="nav-label">テンプレート</span>
+        </div>
+        <div class="nav-item" id="nav-editor" onclick="window.switchTab('editor')">
+            <div class="nav-icon-container"><span class="material-symbols-outlined">edit_document</span></div>
+            <span class="nav-label">エディター</span>
+        </div>
+        <div class="nav-item" id="nav-gallery" onclick="window.switchTab('gallery')">
+            <div class="nav-icon-container"><span class="material-symbols-outlined">photo_library</span></div>
+            <span class="nav-label">ギャラリー</span>
+        </div>
+    </nav>
+
+    <!-- Polska About Dialog -->
+    <md-dialog id="about-dialog">
+        <div slot="headline">Polska Meme Labについて</div>
+        <div slot="content" class="text-sm space-y-3">
+            <p class="font-bold text-red-600 flex items-center gap-1">
+                <span class="material-symbols-outlined">rocket_launch</span> Poland can into Space! (Maybe)
+            </p>
+            <p><strong>Polska Meme Lab</strong>は、ポーランドボールなどのスタンプを自由自在に組み合わせ、テキストを配置してユニークなミームを作成できるエディターアプリです。</p>
+            <p><strong>主な機能:</strong></p>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>Imgflipからトレンドのミーム画像を1タップで読み込み。</li>
+                <li>手持ちのお気に入り画像(PNG)を背景やスタンプとして追加可能。</li>
+                <li>テキスト追加、太さ変更、移動＆リサイズ（スマホ完全対応）。</li>
+                <li>プリセットの主要ポーランドボールキャラ（ドイツ、日本、イタリア、中国、フランス、ポーランドなど）を何個でも挿入可能。</li>
+                <li>保存＆PNGダウンロード、ローカルギャラリーへの記録。</li>
+            </ul>
+        </div>
+        <div slot="actions">
+            <md-text-button onclick="document.getElementById('about-dialog').close()">閉じる</md-text-button>
+        </div>
+    </md-dialog>
+
+    <!-- Toast Notification structure -->
+    <div id="toast">
+        <span class="material-symbols-outlined" id="toast-icon">check_circle</span>
+        <span id="toast-text">メッセージ</span>
+    </div>
+
+    <script type="module">
+        import '@material/web/all.js';
+
+        // --- Global Variables and Constants ---
+        let currentTab = 'templates';
+        let isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let activeElement = null;
+        let scaleFactor = 1;
+        let savedMemes = JSON.parse(localStorage.getItem('saved_memes') || '[]');
+
+        // Touch & Mouse Manipulation State
+        let isDragging = false;
+        let isResizing = false;
+        let currentX, currentY, initialX, initialY;
+        let initialWidth, initialHeight;
+        let dragTarget = null;
+        let resizeTarget = null;
+
+        // Initialize Application
+        window.onload = function() {
+            window.loadMemeTemplates();
+            window.loadLocalGallery();
+            window.initTheme();
+            window.initMemeWorkspaceTouchEvents();
+
+            // Auto-hide context menus on canvas area click
+            document.getElementById('meme-canvas-area').addEventListener('mousedown', (e) => {
+                if (e.target === document.getElementById('meme-canvas-area') || e.target === document.getElementById('meme-bg-img')) {
+                    window.deselectAll();
+                }
+            });
+        };
+
+        // --- Theme management ---
+        window.initTheme = function() {
+            if (isDarkMode) {
+                document.body.setAttribute('data-theme', 'dark');
+                document.getElementById('theme-icon').textContent = 'light_mode';
+            } else {
+                document.body.setAttribute('data-theme', 'light');
+                document.getElementById('theme-icon').textContent = 'dark_mode';
+            }
+        };
+
+        window.toggleDarkMode = function() {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.textContent = isDarkMode ? 'light_mode' : 'dark_mode';
+        };
+
+        // Menu settings trigger
+        const menu = document.getElementById('usage-menu');
+        const anchor = document.getElementById('usage-anchor');
+        anchor.addEventListener('click', () => {
+            menu.open = !menu.open;
+        });
+
+        window.showAbout = function() {
+            document.getElementById('about-dialog').show();
+        };
+
+        // --- Notification helper ---
+        window.showToast = function(msg, icon = 'info') {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastText.textContent = msg;
+            toastIcon.textContent = icon;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        };
+
+        // --- Tab Switching ---
+        window.switchTab = function(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            const targetView = document.getElementById('view-' + tabId);
+            if (targetView) targetView.classList.add('active');
+
+            const targetNav = document.getElementById('nav-' + tabId);
+            if (targetNav) targetNav.classList.add('active');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Deselect on tab change to clean up canvas
+            window.deselectAll();
+        };
+
+        // --- Load Meme Templates from Imgflip API ---
+        window.loadMemeTemplates = async function() {
+            const grid = document.getElementById('memes-grid');
+            const indicator = document.getElementById('loading-indicator');
+            
+            grid.classList.add('hidden');
+            indicator.classList.remove('hidden');
+
+            try {
+                const response = await fetch('https://api.imgflip.com/get_memes');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const memes = data.data.memes;
+                    grid.innerHTML = '';
+                    
+                    memes.slice(0, 15).forEach(meme => {
+                        const card = document.createElement('div');
+                        card.className = "flex flex-col bg-zinc-100 dark:bg-zinc-800 rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg transition border border-zinc-200 dark:border-zinc-700 relative group";
+                        card.onclick = () => window.selectMemeTemplate(meme.url);
+                        
+                        card.innerHTML = `
+                            <div class="aspect-square w-full bg-zinc-200 dark:bg-zinc-900 relative overflow-hidden">
+                                <img src="${meme.url}" alt="${meme.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" crossorigin="anonymous">
+                            </div>
+                            <div class="p-3">
+                                <h4 class="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">${meme.name}</h4>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+
+                    indicator.classList.add('hidden');
+                    grid.classList.remove('hidden');
+                } else {
+                    throw new Error("API status unsuccessful");
+                }
+            } catch (err) {
+                console.error(err);
+                window.showToast("ミームテンプレートの取得に失敗しました", "error");
+                indicator.classList.add('hidden');
+                grid.innerHTML = `
+                    <div class="col-span-full py-8 text-center text-zinc-500">
+                        <p class="mb-2">APIエラー。インターネット環境を確認するか、手持ちの画像で作成してください。</p>
+                        <md-filled-button onclick="window.loadMemeTemplates()">再試行</md-filled-button>
+                    </div>
+                `;
+                grid.classList.remove('hidden');
+            }
+        };
+
+        // --- STREAMING_CHUNK:Developing Workspace Mechanics and Image Loading handlers ---
+        // Selecting template
+        window.selectMemeTemplate = function(imgUrl) {
+            const workspaceBg = document.getElementById('meme-bg-img');
+            workspaceBg.src = imgUrl;
+            workspaceBg.onload = function() {
+                window.showToast("テンプレートをロードしました", "check_circle");
+                window.switchTab('editor');
+            };
+        };
+
+        // Handling custom background upload
+        window.handleBgUpload = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const workspaceBg = document.getElementById('meme-bg-img');
+                    workspaceBg.src = e.target.result;
+                    window.showToast("手持ちの背景をロードしました", "check_circle");
+                    window.switchTab('editor');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Direct fast start with specific Ball as background
+        window.startWithBall = function(imgUrl, name) {
+            window.selectMemeTemplate(imgUrl);
+        };
+
+        // Clear background picture back to standard
+        window.clearBackground = function() {
+            document.getElementById('meme-bg-img').src = "https://placehold.co/600x600/3f3f46/ffffff?text=Polska+Meme+Lab%5CnPlease+Select+Template";
+            window.showToast("背景をリセットしました", "info");
+        };
+
+        // Clear all layered items
+        window.clearAllCanvasElements = function() {
+            const elements = document.querySelectorAll('.meme-element');
+            elements.forEach(el => el.remove());
+            window.deselectAll();
+            window.showToast("全エレメントを消去しました", "delete_forever");
+        };
+
+        // --- STREAMING_CHUNK:Implementing Touch/Mouse drag-and-drop & resize logic ---
+        // Deselect current active item
+        window.deselectAll = function() {
+            document.querySelectorAll('.meme-element').forEach(el => el.classList.remove('active'));
+            activeElement = null;
+            document.getElementById('element-quick-options').style.display = 'none';
+        };
+
+        // Activate element selection
+        window.selectElement = function(element) {
+            window.deselectAll();
+            activeElement = element;
+            element.classList.add('active');
+            document.getElementById('element-quick-options').style.display = 'block';
+        };
+
+        // Layer sorting
+        window.moveLayer = function(dir) {
+            if (!activeElement) return;
+            const currentZ = parseInt(window.getComputedStyle(activeElement).zIndex) || 10;
+            if (dir === 'up') {
+                activeElement.style.zIndex = currentZ + 1;
+                window.showToast("最前面へ移動しました", "expand_less");
+            } else {
+                activeElement.style.zIndex = Math.max(1, currentZ - 1);
+                window.showToast("背面へ移動しました", "expand_more");
+            }
+        };
+
+        // Delete active element
+        window.deleteActiveElement = function() {
+            if (activeElement) {
+                activeElement.remove();
+                window.deselectAll();
+                window.showToast("要素を削除しました", "delete");
+            }
+        };
+
+        // Add Text to Canvas
+        window.addTextElement = function() {
+            const inputField = document.getElementById('text-input');
+            const textVal = inputField.value.trim();
+            if (!textVal) {
+                window.showToast("文字を入力してください", "warning");
+                return;
+            }
+
+            const color = document.getElementById('text-color').value;
+            const weight = document.getElementById('text-weight').value;
+
+            const elemId = 'text-' + Date.now();
+            const element = document.createElement('div');
+            element.className = 'meme-element';
+            element.id = elemId;
+            element.style.left = '50px';
+            element.style.top = '100px';
+            element.style.zIndex = '20';
+            element.style.width = '240px';
+
+            element.innerHTML = `
+                <div class="meme-element-text w-full" style="color: ${color}; font-weight: ${weight}; font-size: 24px;">
+                    ${textVal.replace(/\n/g, '<br>')}
+                </div>
+                <div class="element-control-btn delete-btn-handler" onclick="event.stopPropagation(); window.deleteActiveElement();">
+                    <span class="material-symbols-outlined !text-[12px]">delete</span>
+                </div>
+                <div class="element-control-btn resize-btn-handler">
+                    <span class="material-symbols-outlined !text-[12px]">open_in_full</span>
+                </div>
+            `;
+
+            // Element Click select handler
+            element.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.delete-btn-handler')) return;
+                window.selectElement(element);
+            });
+            element.addEventListener('touchstart', (e) => {
+                if (e.target.closest('.delete-btn-handler')) return;
+                window.selectElement(element);
+            });
+
+            document.getElementById('meme-canvas-area').appendChild(element);
+            window.selectElement(element);
+
+            // Clean input
+            inputField.value = '';
+            window.showToast("テキストを挿入しました", "text_fields");
+        };
+
+        // Add Stamp element (Polandball or other)
+        window.addStampElement = function(imgUrl, name) {
+            const elemId = 'stamp-' + Date.now();
+            const element = document.createElement('div');
+            element.className = 'meme-element';
+            element.id = elemId;
+            element.style.left = '100px';
+            element.style.top = '100px';
+            element.style.zIndex = '25';
+            element.style.width = '100px';
+            element.style.height = '100px';
+
+            element.innerHTML = `
+                <img src="${imgUrl}" class="meme-element-img" alt="${name}" crossorigin="anonymous">
+                <div class="element-control-btn delete-btn-handler" onclick="event.stopPropagation(); window.deleteActiveElement();">
+                    <span class="material-symbols-outlined !text-[12px]">delete</span>
+                </div>
+                <div class="element-control-btn resize-btn-handler">
+                    <span class="material-symbols-outlined !text-[12px]">open_in_full</span>
+                </div>
+            `;
+
+            element.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.delete-btn-handler')) return;
+                window.selectElement(element);
+            });
+            element.addEventListener('touchstart', (e) => {
+                if (e.target.closest('.delete-btn-handler')) return;
+                window.selectElement(element);
+            });
+
+            document.getElementById('meme-canvas-area').appendChild(element);
+            window.selectElement(element);
+            window.showToast(`${name} スタンプを追加しました`, "check_circle");
+        };
+
+        // File uploader handler for handheld PNG stamps
+        window.handleStampUpload = function(event) {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        window.addStampElement(e.target.result, "手持ち画像");
+                    };
+                    reader.readAsDataURL(file);
+                });
+                window.showToast("手持ち画像を配置しました", "check_circle");
+            }
+        };
+
+        // --- STREAMING_CHUNK:Coding Advanced Mobile-First Swipe/Drag & Resize Calculations ---
+        // Touch & Drag-resize events system
+        window.initMemeWorkspaceTouchEvents = function() {
+            const canvasArea = document.getElementById('meme-canvas-area');
+
+            // Handle start action
+            const actionStart = (e) => {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const targetElement = e.target.closest('.meme-element');
+                if (!targetElement) return;
+
+                // Check if resizing button hit
+                if (e.target.closest('.resize-btn-handler')) {
+                    isResizing = true;
+                    resizeTarget = targetElement;
+                    initialX = clientX;
+                    initialY = clientY;
+                    initialWidth = parseFloat(window.getComputedStyle(resizeTarget).width);
+                    initialHeight = parseFloat(window.getComputedStyle(resizeTarget).height);
+                    e.preventDefault();
+                    return;
+                }
+
+                // Dragging action configuration
+                isDragging = true;
+                dragTarget = targetElement;
+                window.selectElement(dragTarget);
+                
+                initialX = clientX - dragTarget.offsetLeft;
+                initialY = clientY - dragTarget.offsetTop;
+                e.preventDefault();
+            };
+
+            // Handle active motion
+            const actionMove = (e) => {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                if (isDragging && dragTarget) {
+                    const nextX = clientX - initialX;
+                    const nextY = clientY - initialY;
+                    
+                    // Boundary control inside canvas
+                    const canvasWidth = canvasArea.offsetWidth;
+                    const canvasHeight = canvasArea.offsetHeight;
+                    const targetWidth = dragTarget.offsetWidth;
+                    const targetHeight = dragTarget.offsetHeight;
+
+                    dragTarget.style.left = `${Math.max(-targetWidth/2, Math.min(canvasWidth - targetWidth/2, nextX))}px`;
+                    dragTarget.style.top = `${Math.max(-targetHeight/2, Math.min(canvasHeight - targetHeight/2, nextY))}px`;
+                    e.preventDefault();
+                }
+
+                if (isResizing && resizeTarget) {
+                    const diffX = clientX - initialX;
+                    const diffY = clientY - initialY;
+
+                    const newWidth = Math.max(40, initialWidth + diffX);
+                    resizeTarget.style.width = `${newWidth}px`;
+
+                    // If it is stamp, scale height as well
+                    if (!resizeTarget.id.includes('text-')) {
+                        const newHeight = Math.max(40, initialHeight + diffY);
+                        resizeTarget.style.height = `${newHeight}px`;
+                    } else {
+                        // Dynamically adjust font-size based on width ratio for texts
+                        const textElem = resizeTarget.querySelector('.meme-element-text');
+                        if (textElem) {
+                            const sizeVal = Math.max(12, Math.min(80, (newWidth / 240) * 24));
+                            textElem.style.fontSize = `${sizeVal}px`;
+                        }
+                    }
+                    e.preventDefault();
+                }
+            };
+
+            // Handle release end action
+            const actionEnd = () => {
+                isDragging = false;
+                isResizing = false;
+                dragTarget = null;
+                resizeTarget = null;
+            };
+
+            // Event bindings
+            canvasArea.addEventListener('mousedown', actionStart);
+            document.addEventListener('mousemove', actionMove);
+            document.addEventListener('mouseup', actionEnd);
+
+            canvasArea.addEventListener('touchstart', actionStart, { passive: false });
+            document.addEventListener('touchmove', actionMove, { passive: false });
+            document.addEventListener('touchend', actionEnd);
+        };
+
+        // --- STREAMING_CHUNK:Coding Canvas Exporter with html2canvas and local caching ---
+        // Render current meme composite using html2canvas and trigger save / download
+        window.renderAndSaveMeme = function() {
+            window.deselectAll(); // Remove dashed outline before snapshotting
+
+            const canvasTarget = document.getElementById('meme-canvas-area');
+
+            window.showToast("画像をレンダリング中...", "pending");
+
+            // Use html2canvas to merge background and stamps/texts high quality
+            html2canvas(canvasTarget, {
+                useCORS: true,
+                scale: 2, // High resolution output
+                backgroundColor: null,
+                logging: false
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                
+                // 1. Trigger Direct Download
+                const link = document.createElement('a');
+                link.download = `polska-meme-${Date.now()}.png`;
+                link.href = imgData;
+                link.click();
+
+                // 2. Add to local storage gallery
+                const savedItem = {
+                    id: 'saved-' + Date.now(),
+                    img: imgData,
+                    date: new Date().toLocaleDateString()
+                };
+
+                savedMemes.unshift(savedItem);
+                localStorage.setItem('saved_memes', JSON.stringify(savedMemes));
+
+                // Reload local gallery display
+                window.loadLocalGallery();
+                window.showToast("ダウンロード開始 ＆ ギャラリーに保存しました！", "download_done");
+            }).catch(err => {
+                console.error(err);
+                window.showToast("画像の生成中にエラーが発生しました", "error");
+            });
+        };
+
+        // --- STREAMING_CHUNK:Building Gallery Loading & Deleting handlers ---
+        // Load Gallery
+        window.loadLocalGallery = function() {
+            const grid = document.getElementById('gallery-grid');
+            const emptyState = document.getElementById('gallery-empty-state');
+
+            savedMemes = JSON.parse(localStorage.getItem('saved_memes') || '[]');
+
+            if (savedMemes.length === 0) {
+                emptyState.classList.remove('hidden');
+                grid.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = '';
+
+            savedMemes.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "flex flex-col bg-zinc-100 dark:bg-zinc-800 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700 relative";
+                
+                card.innerHTML = `
+                    <div class="aspect-square w-full bg-zinc-200 dark:bg-zinc-900 relative">
+                        <img src="${item.img}" class="w-full h-full object-contain" alt="Saved Meme">
+                    </div>
+                    <div class="p-3 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-zinc-500">${item.date}</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <md-icon-button title="ダウンロード" onclick="window.downloadDirect('${item.img}', '${item.id}')">
+                                <span class="material-symbols-outlined text-green-600">download</span>
+                            </md-icon-button>
+                            <md-icon-button title="削除" onclick="window.deleteGalleryItem('${item.id}')">
+                                <span class="material-symbols-outlined text-red-500">delete</span>
+                            </md-icon-button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            grid.classList.remove('hidden');
+        };
+
+        // Download directly from Gallery
+        window.downloadDirect = function(dataUrl, id) {
+            const link = document.createElement('a');
+            link.download = `polska-saved-meme-${id}.png`;
+            link.href = dataUrl;
+            link.click();
+            window.showToast("再ダウンロードを開始しました", "download_done");
+        };
+
+        // Delete single item from Gallery
+        window.deleteGalleryItem = function(id) {
+            savedMemes = savedMemes.filter(item => item.id !== id);
+            localStorage.setItem('saved_memes', JSON.stringify(savedMemes));
+            window.loadLocalGallery();
+            window.showToast("ミームを削除しました", "delete");
+        };
+
+        // Clear whole gallery
+        window.clearGallery = function() {
+            if (confirm("本当に保存された全てのミーム作品をクリアしますか？")) {
+                savedMemes = [];
+                localStorage.removeItem('saved_memes');
+                window.loadLocalGallery();
+                window.showToast("ギャラリーをクリアしました", "delete_forever");
+            }
+        };
+
+    </script>
+</body>
+</html>
