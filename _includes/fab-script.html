@@ -1,0 +1,61 @@
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const menuBtn = document.getElementById('menuBtn');
+    const navDrawer = document.getElementById('navDrawer');
+    const scrim = document.getElementById('scrim');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const root = document.documentElement;
+
+    // 1. ドロワーメニュー開閉ロジック
+    function openDrawer() {
+      navDrawer.classList.add('open');
+      scrim.classList.add('show');
+    }
+
+    function closeDrawer() {
+      navDrawer.classList.remove('open');
+      scrim.classList.remove('show');
+    }
+
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openDrawer();
+    });
+
+    scrim.addEventListener('click', closeDrawer);
+
+    // ページリンクを踏んだらドロワーを閉じる
+    const linkItems = document.querySelectorAll('.link-item');
+    linkItems.forEach(item => {
+      item.addEventListener('click', closeDrawer);
+    });
+
+    // 2. ダークモード管理ロジック
+    const updateThemeUI = (isDark) => {
+      if (isDark) {
+        root.classList.add('dark-mode');
+        themeToggleBtn.textContent = "ライトモードにする";
+      } else {
+        root.classList.remove('dark-mode');
+        themeToggleBtn.textContent = "ダークモードにする";
+      }
+    };
+
+    // 初期テーマの判定 (既存のローカルストレージ or OS設定を引き継ぎ)
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    updateThemeUI(isDarkMode);
+
+    // テーマ切り替えボタンのイベント
+    themeToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // メニューが閉じるのを防止
+      const currentDark = root.classList.contains('dark-mode');
+      const nextDark = !currentDark;
+      
+      updateThemeUI(nextDark);
+      localStorage.setItem('theme', nextDark ? 'dark' : 'light');
+    });
+  });
+</script>
