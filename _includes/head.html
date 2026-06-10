@@ -1,6 +1,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="PolandBallHub - 世界を、丸い視点から。">
+<meta name="theme-color" content="#6750A4">
 
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Google+Sans:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
@@ -12,12 +13,19 @@
 <script type="module" src="https://esm.run/@material/web/all.js"></script>
 
 <style>
+  /* リセット */
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
   }
 
+  html, body {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* M3 カラーシステム（ライトモード） */
   :root {
     --md-sys-color-primary: #6750A4;
     --md-sys-color-on-primary: #FFFFFF;
@@ -43,11 +51,13 @@
     --md-sys-color-on-surface-variant: #49454F;
     --md-sys-color-outline: #79747E;
     --md-sys-color-outline-variant: #C4C7C5;
+    --md-sys-color-scrim: #000000;
 
     --md-ref-typeface-brand: 'Google Sans', 'Noto Sans JP', sans-serif;
     --md-ref-typeface-plain: 'Roboto', 'Noto Sans JP', sans-serif;
   }
 
+  /* M3 カラーシステム（ダークモード） */
   :root.dark-mode {
     --md-sys-color-primary: #D0BCFF;
     --md-sys-color-on-primary: #381E72;
@@ -75,11 +85,7 @@
     --md-sys-color-outline-variant: #49454F;
   }
 
-  html, body {
-    width: 100%;
-    height: 100%;
-  }
-
+  /* 基本スタイル */
   body {
     font-family: var(--md-ref-typeface-plain);
     background-color: var(--md-sys-color-background);
@@ -91,12 +97,30 @@
 
   main {
     flex: 1;
-    padding-top: 80px;
-    padding-left: 24px;
-    padding-right: 24px;
-    padding-bottom: 24px;
+    padding: 24px;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
+  }
+
+  /* スクリム（モーダル背景） */
+  .modal-scrim {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.32);
+    z-index: 99;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .modal-scrim.active {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
   }
 </style>
