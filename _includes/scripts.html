@@ -1,0 +1,90 @@
+<script type="module">
+  document.addEventListener('DOMContentLoaded', () => {
+    // DOM要素の取得
+    const navMenuBtn = document.getElementById('navMenuBtn');
+    const navDrawer = document.getElementById('navDrawer');
+    const navScrim = document.getElementById('navScrim');
+    const navDrawerItems = document.querySelectorAll('.nav-drawer-item');
+    const themeToggleBtnTop = document.getElementById('themeToggleBtnTop');
+    const themeToggleBtnDrawer = document.getElementById('themeToggleBtnDrawer');
+    const themeIconTop = document.getElementById('themeIconTop');
+    const themeIconDrawer = document.getElementById('themeIconDrawer');
+    const root = document.documentElement;
+
+    // ナビゲーションドロワーの制御
+    const openDrawer = () => {
+      if (navDrawer) {
+        navDrawer.opened = true;
+        if (navScrim) navScrim.classList.add('active');
+      }
+    };
+
+    const closeDrawer = () => {
+      if (navDrawer) {
+        navDrawer.opened = false;
+        if (navScrim) navScrim.classList.remove('active');
+      }
+    };
+
+    // メニューボタンのクリックイベント
+    if (navMenuBtn) {
+      navMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDrawer();
+      });
+    }
+
+    // スクリムのクリックイベント
+    if (navScrim) {
+      navScrim.addEventListener('click', closeDrawer);
+    }
+
+    // ナビゲーション項目のクリックイベント
+    navDrawerItems.forEach(item => {
+      item.addEventListener('click', closeDrawer);
+    });
+
+    // ダークモード管理
+    const updateThemeUI = (isDark) => {
+      if (isDark) {
+        root.classList.add('dark-mode');
+        if (themeToggleBtnTop) themeToggleBtnTop.title = 'ライトモードにする';
+        if (themeToggleBtnDrawer) themeToggleBtnDrawer.headline = 'ライトモードにする';
+        if (themeIconTop) themeIconTop.textContent = 'light_mode';
+        if (themeIconDrawer) themeIconDrawer.textContent = 'light_mode';
+      } else {
+        root.classList.remove('dark-mode');
+        if (themeToggleBtnTop) themeToggleBtnTop.title = 'ダークモードにする';
+        if (themeToggleBtnDrawer) themeToggleBtnDrawer.headline = 'ダークモードにする';
+        if (themeIconTop) themeIconTop.textContent = 'dark_mode';
+        if (themeIconDrawer) themeIconDrawer.textContent = 'dark_mode';
+      }
+    };
+
+    // 初期テーマの設定
+    const savedTheme = localStorage.getItem('pbhub-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    updateThemeUI(isDarkMode);
+
+    // テーマ切り替えボタンのクリックイベント（トップバー）
+    if (themeToggleBtnTop) {
+      themeToggleBtnTop.addEventListener('click', (e) => {
+        e.preventDefault();
+        const nextDark = !root.classList.contains('dark-mode');
+        updateThemeUI(nextDark);
+        localStorage.setItem('pbhub-theme', nextDark ? 'dark' : 'light');
+      });
+    }
+
+    // テーマ切り替えボタンのクリックイベント（ドロワー）
+    if (themeToggleBtnDrawer) {
+      themeToggleBtnDrawer.addEventListener('click', (e) => {
+        e.preventDefault();
+        const nextDark = !root.classList.contains('dark-mode');
+        updateThemeUI(nextDark);
+        localStorage.setItem('pbhub-theme', nextDark ? 'dark' : 'light');
+      });
+    }
+  });
+</script>
