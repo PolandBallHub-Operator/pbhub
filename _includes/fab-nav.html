@@ -1,0 +1,20 @@
+<button class="floating-menu-button" id="menuBtn" aria-label="メニューを開く">☰</button>
+
+<div class="scrim" id="scrim"></div>
+
+<aside class="nav-drawer" id="navDrawer">
+  <div class="drawer-header">
+    <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/normal.png" alt="PBHub Logo" class="drawer-logo">
+    <h2 class="drawer-title">PBHub</h2>
+  </div>
+  
+  <nav class="drawer-content">
+    <a href="{{ '/' | relative_url }}" class="drawer-item link-item">ホーム</a>
+    <a href="{{ '/blog/' | relative_url }}" class="drawer-item link-item">ブログ</a>
+    <a href="{{ '/about/' | relative_url }}" class="drawer-item link-item">アバウト</a>
+
+    <hr style="border: none; border-top: 1px solid var(--md-sys-color-surface-variant); margin: 8px 0;">
+
+    <button class="drawer-item" id="themeToggleBtn">ダークモードにする</button>
+  </nav>
+</aside>
