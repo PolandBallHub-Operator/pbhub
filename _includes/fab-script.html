@@ -1,55 +1,69 @@
 <script type="module">
   document.addEventListener('DOMContentLoaded', () => {
+    // DOM要素の取得
     const menuBtn = document.getElementById('menuBtn');
     const navDrawer = document.getElementById('navDrawer');
     const scrim = document.getElementById('scrim');
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeToggleItem = document.getElementById('themeToggleItem');
     const themeIcon = document.getElementById('themeIcon');
+    const navLinks = document.querySelectorAll('.nav-link');
     const root = document.documentElement;
 
-    // 1. ドロワーメニュー制御
-    if (menuBtn && navDrawer && scrim) {
-      menuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
+    // ドロワーの開閉制御
+    const openDrawer = () => {
+      if (navDrawer) {
         navDrawer.opened = true;
-        scrim.classList.add('show');
-      });
-
-      scrim.addEventListener('click', () => {
-        navDrawer.opened = false;
-        scrim.classList.remove('show');
-      });
-
-      const linkItems = document.querySelectorAll('.link-item');
-      linkItems.forEach(item => {
-        item.addEventListener('click', () => {
-          navDrawer.opened = false;
-          scrim.classList.remove('show');
-        });
-      });
-    }
-
-    // 2. ダークモード管理
-    const updateThemeUI = (isDark) => {
-      if (isDark) {
-        root.classList.add('dark-mode');
-        if (themeToggleBtn) themeToggleBtn.label = "ライトモードにする";
-        if (themeIcon) themeIcon.textContent = "light_mode";
-      } else {
-        root.classList.remove('dark-mode');
-        if (themeToggleBtn) themeToggleBtn.label = "ダークモードにする";
-        if (themeIcon) themeIcon.textContent = "dark_mode";
+        if (scrim) scrim.classList.add('show');
       }
     };
 
+    const closeDrawer = () => {
+      if (navDrawer) {
+        navDrawer.opened = false;
+        if (scrim) scrim.classList.remove('show');
+      }
+    };
+
+    // メニューボタンのクリックイベント
+    if (menuBtn) {
+      menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDrawer();
+      });
+    }
+
+    // スクリムのクリックイベント
+    if (scrim) {
+      scrim.addEventListener('click', closeDrawer);
+    }
+
+    // ナビゲーションリンクのクリックイベント
+    navLinks.forEach(link => {
+      link.addEventListener('click', closeDrawer);
+    });
+
+    // ダークモード管理
+    const updateThemeUI = (isDark) => {
+      if (isDark) {
+        root.classList.add('dark-mode');
+        if (themeToggleItem) themeToggleItem.label = 'ライトモードにする';
+        if (themeIcon) themeIcon.textContent = 'light_mode';
+      } else {
+        root.classList.remove('dark-mode');
+        if (themeToggleItem) themeToggleItem.label = 'ダークモードにする';
+        if (themeIcon) themeIcon.textContent = 'dark_mode';
+      }
+    };
+
+    // 初期テーマの設定
     const savedTheme = localStorage.getItem('pbhub-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
-    
     updateThemeUI(isDarkMode);
 
-    if (themeToggleBtn) {
-      themeToggleBtn.addEventListener('click', (e) => {
+    // テーマ切り替えボタンのクリックイベント
+    if (themeToggleItem) {
+      themeToggleItem.addEventListener('click', (e) => {
         e.preventDefault();
         const nextDark = !root.classList.contains('dark-mode');
         updateThemeUI(nextDark);
