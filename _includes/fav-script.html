@@ -1,0 +1,44 @@
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const mainFab = document.getElementById('mainFab');
+    const mainFabIcon = document.getElementById('mainFabIcon');
+    const fabMenu = document.getElementById('fabMenu');
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const root = document.documentElement;
+
+    // 1. FABの展開/格納ロジック
+    mainFab.addEventListener('click', () => {
+      const isOpen = fabMenu.classList.toggle('open');
+      // アイコンを「メニュー」と「閉じる」で切り替え
+      mainFabIcon.textContent = isOpen ? 'close' : 'menu';
+    });
+
+    // 2. ダークモード管理ロジック
+    const updateThemeUI = (isDark) => {
+      if (isDark) {
+        root.classList.add('dark-mode');
+        themeIcon.textContent = 'light_mode'; // ダークモード時は太陽アイコンに
+      } else {
+        root.classList.remove('dark-mode');
+        themeIcon.textContent = 'dark_mode';  // ライトモード時は月アイコンに
+      }
+    };
+
+    // 初期テーマの判定 (ローカルストレージ or OSの設定)
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    updateThemeUI(isDarkMode);
+
+    // テーマ切り替えボタンのクリックイベント
+    themeToggle.addEventListener('click', () => {
+      const currentDark = root.classList.contains('dark-mode');
+      const nextDark = !currentDark;
+      
+      updateThemeUI(nextDark);
+      localStorage.setItem('theme', nextDark ? 'dark' : 'light');
+    });
+  });
+</script>
