@@ -1,16 +1,16 @@
 ---
 layout: default
-title: タングルAIモード
+title: アプリ一覧
 ---
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PBhub2 - Tool Launcher</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PBhub2 | アプリ一覧</title>
 
     <!-- Google Fonts & Material Symbols -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
     <!-- Import Map for Material Web & Color Utilities -->
@@ -24,10 +24,12 @@ title: タングルAIモード
     </script>
 
     <style>
-        /* * CSS Setup (ベースコードを維持)
+        /* * =========================================
+         * 1. CSS Variables & Material Design Tokens
+         * =========================================
          */
         :root {
-            /* Base Colors (Will be overridden by JS) */
+            /* Base Colors (Will be overridden by JS / Monet) */
             --md-sys-color-primary: #6750a4;
             --md-sys-color-on-primary: #ffffff;
             --md-sys-color-primary-container: #eaddff;
@@ -52,620 +54,492 @@ title: タングルAIモード
             --md-sys-color-on-surface-variant: #49454f;
             --md-sys-color-outline: #79747e;
             --md-sys-color-outline-variant: #c4c7c5;
+            --md-sys-color-inverse-surface: #313033;
+            --md-sys-color-inverse-on-surface: #f4f0f4;
+            --md-sys-color-inverse-primary: #d0bcff;
             
             /* Typography */
             --md-ref-typeface-brand: 'Google Sans', sans-serif;
             --md-ref-typeface-plain: 'Roboto', sans-serif;
 
-            /* Transitions */
-            --transition-duration: 0.3s;
+            /* Liquid Glass Extensions - ぼかしなし設定 */
+            --glass-blur: 0px;
+            --glass-opacity-light: 1.0;
+            --glass-opacity-dark: 1.0;
+            --glass-border-opacity: 0.15;
+            
+            /* Animation Curves */
+            --m3-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+            --m3-easing-emphasized: cubic-bezier(0.3, 0, 0, 1);
+            --transition-duration: 0.4s;
         }
 
+        /* * =========================================
+         * 2. Background (Material Design Solid Color)
+         * =========================================
+         */
         body {
             margin: 0;
             padding: 0;
             font-family: var(--md-ref-typeface-plain);
             background-color: var(--md-sys-color-background);
             color: var(--md-sys-color-on-background);
-            transition: background-color var(--transition-duration), color var(--transition-duration), margin-left 0.3s;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Layout */
+        /* ぼかし背景アニメーションは無効化し、クリーンなMaterialカラーの背景に */
+        .fluid-background {
+            display: none;
+        }
+
+        /* * =========================================
+         * 3. Header & Navigation (Liquid Glass with Blur: 0)
+         * =========================================
+         */
         header {
-            background-color: var(--md-sys-color-surface);
-            color: var(--md-sys-color-on-surface);
-            padding: 12px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            height: 64px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            background-color: var(--md-sys-color-surface);
+            border-bottom: 1px solid rgba(128, 128, 128, var(--glass-border-opacity));
+            transition: background-color 0.3s, border-color 0.3s;
         }
 
         header h1 {
             margin: 0;
             font-family: var(--md-ref-typeface-brand);
-            font-size: 22px;
-            font-weight: 500;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
         }
 
-        /* Poland Character Styling in Header */
-        .header-avatar {
-            width: 36px;
-            height: 36px;
+        .header-char {
+            width: 32px;
+            height: 32px;
             object-fit: contain;
             border-radius: 50%;
-            background-color: var(--md-sys-color-surface-variant);
-            border: 2px solid var(--md-sys-color-outline-variant);
         }
 
-        main {
-            flex: 1;
-            padding: 16px;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-            padding-bottom: 120px; /* モバイル時のボトムナビ・FABのスペース */
-            transition: padding-bottom 0.3s;
-        }
-
-        /* View Management */
-        .view-section {
-            display: none;
-            animation: fadeScale 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
-        }
-        .view-section.active {
-            display: block;
-        }
-
-        @keyframes fadeScale {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Card-like sections */
-        .section-card {
-            background-color: var(--md-sys-color-surface);
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 24px;
-            border: 1px solid var(--md-sys-color-outline-variant);
-            position: relative;
-        }
-
-        .section-title {
-            font-family: var(--md-ref-typeface-brand);
-            font-size: 1.25rem;
-            font-weight: 500;
-            margin-bottom: 16px;
-            color: var(--md-sys-color-primary);
-        }
-
-        /* Color Picker Styles */
-        .color-picker-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 16px;
-            padding: 16px;
-            border-radius: 16px;
-            background-color: var(--md-sys-color-surface-variant);
-            color: var(--md-sys-color-on-surface-variant);
-        }
-
-        input[type="color"] {
-            -webkit-appearance: none;
-            border: none;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            cursor: pointer;
-            padding: 0;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch {
-            border: none;
-        }
-
-        /* Custom Cards for M3 */
-        .m3-card {
-            border-radius: 12px;
-            background-color: var(--md-sys-color-surface);
-            color: var(--md-sys-color-on-surface);
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--md-sys-color-outline-variant);
-            transition: box-shadow 0.2s, background-color 0.2s;
-            text-decoration: none; /* ランチャー用カードは全体リンクにできるように対応 */
-        }
-        
-        .m3-card.elevated {
-            border: none;
-            background-color: var(--md-sys-color-surface-variant);
-            box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15);
-        }
-
-        /* Hover effect for cards as launchers */
-        .m3-card:hover {
-            box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.15);
-            background-color: var(--md-sys-color-primary-container);
-            color: var(--md-sys-color-on-primary-container);
-        }
-
-        .m3-card:hover .url-indicator {
-            color: var(--md-sys-color-primary);
-        }
-
-        .m3-card-content {
-            padding: 16px;
-        }
-        
-        .m3-card-actions {
-            display: flex;
-            justify-content: flex-end;
-            padding: 8px;
-            gap: 8px;
-        }
-
-        .url-indicator {
-            font-size: 0.825rem;
-            opacity: 0.7;
-            font-family: monospace;
-            word-break: break-all;
-            margin-top: 4px;
-            color: var(--md-sys-color-on-surface-variant);
-        }
-
-        /* Floating Action Button */
-        .fab-container {
+        /* * =========================================
+         * 4. Floating Tab Bar (Expressive Component)
+         * =========================================
+         */
+        .floating-nav-container {
             position: fixed;
-            bottom: 100px; /* モバイル: ボトムナビの上 */
-            right: 24px;
-            z-index: 6;
-            transition: bottom 0.3s, right 0.3s;
-        }
-
-        /* =========================================
-           Custom Material 3 Navigation Bar (AI 実装維持)
-           ========================================= */
-        .custom-nav {
-            position: fixed;
-            background-color: var(--md-sys-color-surface);
-            display: flex;
-            align-items: center;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 100;
-            transition: all 0.3s ease;
+            width: auto;
+            max-width: 95vw;
         }
 
-        .custom-nav::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: var(--md-sys-color-primary);
-            opacity: 0.05;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        /* モバイル向け（ボトムナビゲーション） デフォルト */
         .custom-nav {
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            justify-content: space-evenly;
-            padding-bottom: env(safe-area-inset-bottom);
-            box-shadow: 0 -1px 3px 0 rgba(0,0,0,0.1), 0 -2px 6px 2px rgba(0,0,0,0.05);
-            flex-direction: row;
+            display: flex;
+            align-items: center;
+            background-color: var(--md-sys-color-surface-container-high, var(--md-sys-color-surface-variant));
+            padding: 8px 16px;
+            border-radius: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            border: 1px solid rgba(128, 128, 128, var(--glass-border-opacity));
+            transition: all 0.4s var(--m3-easing-emphasized);
         }
 
         .nav-item {
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex: 1;
-            height: 100%;
+            min-width: 80px;
+            height: 48px;
             cursor: pointer;
-            text-decoration: none;
-            color: var(--md-sys-color-on-surface-variant);
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
+            border-radius: 24px;
+            transition: all 0.2s var(--m3-easing-standard);
         }
 
         .nav-icon-container {
-            width: 64px;
+            width: 56px;
             height: 32px;
             display: flex;
             justify-content: center;
             align-items: center;
             border-radius: 16px;
-            margin-bottom: 4px;
-            transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1), 
-                        color 0.2s cubic-bezier(0.2, 0, 0, 1);
+            transition: background-color 0.3s var(--m3-easing-standard);
         }
 
         .nav-item .material-symbols-outlined {
             font-size: 24px;
-            font-variation-settings: 'FILL' 0;
-            transition: font-variation-settings 0.2s cubic-bezier(0.2, 0, 0, 1);
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+            color: var(--md-sys-color-on-surface-variant);
         }
 
         .nav-label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
-            letter-spacing: 0.5px;
-            transition: color 0.2s cubic-bezier(0.2, 0, 0, 1);
+            margin-top: 4px;
+            color: var(--md-sys-color-on-surface-variant);
         }
 
         /* Active State */
-        .nav-item.active {
-            color: var(--md-sys-color-on-surface);
-        }
-
         .nav-item.active .nav-icon-container {
             background-color: var(--md-sys-color-secondary-container);
-            color: var(--md-sys-color-on-secondary-container);
         }
 
         .nav-item.active .material-symbols-outlined {
             font-variation-settings: 'FILL' 1;
+            color: var(--md-sys-color-on-secondary-container);
         }
 
-        /* =========================================
-           Responsive: PC, Tablet, Landscape -> Navigation Rail
-           ========================================= */
-        @media (min-width: 600px) and (orientation: landscape), (min-width: 800px) {
-            body {
-                margin-left: 80px; 
-            }
-            
-            main {
-                padding-bottom: 32px; 
-            }
+        .nav-item.active .nav-label {
+            color: var(--md-sys-color-on-surface);
+            font-weight: 700;
+        }
 
+        .nav-item:hover .nav-icon-container {
+            background-color: rgba(128, 128, 128, 0.12);
+        }
+
+        /* PC等ワイド画面でのRail表示 */
+        @media (min-width: 900px) {
+            .floating-nav-container {
+                left: 24px;
+                bottom: auto;
+                top: 50%;
+                transform: translateY(-50%);
+            }
             .custom-nav {
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: auto;
-                width: 80px;
-                height: 100%;
                 flex-direction: column;
-                justify-content: flex-start;
-                padding-top: 32px; 
-                padding-bottom: 0;
-                box-shadow: 1px 0 3px 0 rgba(0,0,0,0.1);
-                overflow-y: auto; 
+                border-radius: 24px;
+                padding: 16px 8px;
             }
-
             .nav-item {
-                flex: none;
-                height: 72px;
-                width: 100%;
-                margin-bottom: 12px;
+                margin: 8px 0;
             }
+            body { margin-left: 100px; }
+        }
 
-            .fab-container {
-                bottom: 32px;
-                right: 32px;
-            }
+        /* * =========================================
+         * 5. Layout & Sections
+         * =========================================
+         */
+        main {
+            flex: 1;
+            padding: 24px 16px 120px 16px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .view-section {
+            display: none;
+            animation: m3-fade-in 0.5s var(--m3-easing-emphasized) forwards;
+        }
+        .view-section.active { display: block; }
+
+        @keyframes m3-fade-in {
+            from { opacity: 0; transform: scale(0.98) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* M3 Cards (No Glass Blur) */
+        .glass-card {
+            background-color: var(--md-sys-color-surface-container-low, var(--md-sys-color-surface));
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(128, 128, 128, var(--glass-border-opacity));
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            transition: transform 0.3s var(--m3-easing-standard), box-shadow 0.3s, background-color 0.3s;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-family: var(--md-ref-typeface-brand);
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--md-sys-color-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+            padding-bottom: 8px;
+        }
+
+        /* * =========================================
+         * 6. Specialized UI Elements
+         * =========================================
+         */
+        .dynamic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        /* Tool Item Design */
+        .tool-card {
+            background-color: var(--md-sys-color-surface-container);
+            border-radius: 20px;
+            padding: 18px;
+            border: 1px solid rgba(128, 128, 128, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .tool-card:hover {
+            background-color: var(--md-sys-color-surface-container-high);
+            transform: translateY(-1px);
+        }
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tool-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tool-name {
+            font-family: var(--md-ref-typeface-brand);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+        }
+
+        .tool-info {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--md-sys-color-on-surface-variant);
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .tool-action {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .search-box-container {
+            margin-bottom: 24px;
+        }
+
+        /* * =========================================
+         * 7. Interactive Components Overrides
+         * =========================================
+         */
+        md-filled-button, md-elevated-button, md-outlined-button {
+            --md-filled-button-container-shape: 16px;
+        }
+
+        md-outlined-text-field, md-filled-text-field {
+            width: 100%;
+        }
+
+        /* * =========================================
+         * 8. Empty & Error States
+         * =========================================
+         */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 16px;
+            text-align: center;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .empty-state .material-symbols-outlined {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.7;
         }
     </style>
 </head>
-<body>
+<body class="light-mode">
 
     <!-- Top App Bar -->
     <header>
         <div style="display:flex; align-items:center; gap:12px;">
-            <img src="https://raw.githubusercontent.com/Polandballhub-Operator/pbimagesPublic/refs/heads/main/balls/poland/normal.png" class="header-avatar" alt="Polandball">
+            <img src="https://raw.githubusercontent.com/Polandballhub-Operator/pbimagesPublic/refs/heads/main/balls/poland/normal.png" alt="Polandball" class="header-char">
             <h1>PBhub2</h1>
         </div>
         <div style="display:flex; align-items:center;">
+            <input type="color" id="source-color-picker" value="#6750a4" style="width:0; height:0; visibility:hidden; position:absolute;">
+            <md-icon-button onclick="document.getElementById('source-color-picker').click()">
+                <span class="material-symbols-outlined">palette</span>
+            </md-icon-button>
             <md-icon-button onclick="window.toggleDarkMode()">
                 <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
-            </md-icon-button>
-            <md-icon-button onclick="window.openSettingsDialog()">
-                <span class="material-symbols-outlined">palette</span>
             </md-icon-button>
         </div>
     </header>
 
     <main>
-        
-        <!-- ==========================================
-             VIEW 1: すべてのツール (All Tools)
-             ========================================== -->
-        <section id="view-home" class="view-section active">
-            
-            <!-- Welcome Info -->
-            <div class="section-card" style="border-color: var(--md-sys-color-primary);">
-                <div class="section-title">PBhub2</div>
-                <p style="margin-top:0; color: var(--md-sys-color-on-surface-variant); line-height: 1.6;">
-                    世界を、丸い視点から。
-                </p>
-                <p style="margin: 0; font-size: 0.85rem; color: var(--md-sys-color-primary); font-weight: 500;">
-                    Polandballhub apps
-                    <p>
+        <!-- VIEW: TOOLS (ツール一覧) -->
+        <section id="view-tools" class="view-section active">
+            <div id="tools-container">
+                <!-- カテゴリおよびツールカードがJSによって動的に描画されます -->
             </div>
-
-            <!-- カテゴリ：ゲーム&PB -->
-            <div style="margin-bottom: 24px;">
-                <h2 style="font-family: var(--md-ref-typeface-brand); font-size: 1.25rem; font-weight: 500; margin-left: 8px; margin-bottom: 12px; display:flex; align-items:center; gap:8px; color: var(--md-sys-color-primary);">
-                    <span class="material-symbols-outlined">build</span> ゲーム&PB
-                </h2>
-                
-                <!-- JSON フォーマッター -->
-                <a class="m3-card" href="https://pbhub.io/tools/json-formatter" target="_blank">
-                    <md-ripple></md-ripple>
-                    <div class="m3-card-content">
-                        <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">JSON Formatter</h3>
-                        <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                            生データのJSON文字列を美しく構造化し、バリデーションと階層構造の確認を行います。
-                        </p>
-                        <div class="url-indicator">https://pbhub.io/tools/json-formatter</div>
-                    </div>
-                </a>
-
-                <!-- Base64 エンコーダー -->
-                <a class="m3-card" href="https://pbhub.io/tools/base64" target="_blank">
-                    <md-ripple></md-ripple>
-                    <div class="m3-card-content">
-                        <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">Base64 Encoder / Decoder</h3>
-                        <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                            文字列や画像ファイルを相互にBase64文字列へと変換・デコード処理を行います。
-                        </p>
-                        <div class="url-indicator">https://pbhub.io/tools/base64</div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- カテゴリ：デザインツール -->
-            <div style="margin-bottom: 24px;">
-                <h2 style="font-family: var(--md-ref-typeface-brand); font-size: 1.25rem; font-weight: 500; margin-left: 8px; margin-bottom: 12px; display:flex; align-items:center; gap:8px; color: var(--md-sys-color-primary);">
-                    <span class="material-symbols-outlined">palette</span> デザイン・パレット
-                </h2>
-
-                <!-- Material Palette Generator -->
-                <a class="m3-card" href="https://pbhub.io/tools/m3-palette" target="_blank">
-                    <md-ripple></md-ripple>
-                    <div class="m3-card-content">
-                        <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">Material Theme Creator</h3>
-                        <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                            単一の基準色から、Material Design 3に完全適合したカラーシステムパレットを生成します。
-                        </p>
-                        <div class="url-indicator">https://pbhub.io/tools/m3-palette</div>
-                    </div>
-                </a>
-
-                <!-- SVG最適化・クリーナー -->
-                <a class="m3-card" href="https://pbhub.io/tools/svg-optimizer" target="_blank">
-                    <md-ripple></md-ripple>
-                    <div class="m3-card-content">
-                        <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">SVG Optimizer</h3>
-                        <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                            SVGコードから不要なタグやメタデータを削ぎ落とし、ウェブ用に高度に軽量化します。
-                        </p>
-                        <div class="url-indicator">https://pbhub.io/tools/svg-optimizer</div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- カテゴリ：テキスト編集ツール -->
-            <div style="margin-bottom: 24px;">
-                <h2 style="font-family: var(--md-ref-typeface-brand); font-size: 1.25rem; font-weight: 500; margin-left: 8px; margin-bottom: 12px; display:flex; align-items:center; gap:8px; color: var(--md-sys-color-primary);">
-                    <span class="material-symbols-outlined">edit_document</span> テキスト・マークダウン
-                </h2>
-
-                <!-- Markdown Live Editor -->
-                <a class="m3-card" href="https://pbhub.io/tools/markdown-editor" target="_blank">
-                    <md-ripple></md-ripple>
-                    <div class="m3-card-content">
-                        <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">Markdown Editor</h3>
-                        <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                            リアルタイムでプレビューを確認しながら文章作成ができる、軽快なMarkdown記法エディタです。
-                        </p>
-                        <div class="url-indicator">https://pbhub.io/tools/markdown-editor</div>
-                    </div>
-                </a>
-            </div>
-
         </section>
 
-        <!-- ==========================================
-             VIEW 2: 開発・便利ツール専用ビュー (Dev Tools Category)
-             ========================================== -->
-        <section id="view-controls" class="view-section">
-            <h2 style="font-family: var(--md-ref-typeface-brand); font-size: 1.4rem; font-weight: 500; margin-bottom: 16px; color: var(--md-sys-color-primary);">
-                ゲーム&PB
-            </h2>
+        <!-- VIEW: SEARCH (ツール検索) -->
+        <section id="view-search" class="view-section">
+            <div class="glass-card search-box-container">
+                <md-outlined-text-field id="search-input" label="ツールを検索" placeholder="ツール名や説明を入力してください..." value="">
+                    <md-icon slot="leading-icon"><span class="material-symbols-outlined">search</span></md-icon>
+                </md-outlined-text-field>
+            </div>
 
-            <a class="m3-card" href="AI/aimode" target="_blank">
-                <md-ripple></md-ripple>
-                <div class="m3-card-content">
-                    <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">PBスイカゲーム</h3>
-                    <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                        ポーランドボールのスイカゲーム。
-                    </p>
-                    <div class="url-indicator">https://pbhub.io/tools/json-formatter</div>
-                </div>
-            </a>
-
-            <a class="m3-card" href="https://pbhub.io/tools/base64" target="_blank">
-                <md-ripple></md-ripple>
-                <div class="m3-card-content">
-                    <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">Base64 Encoder / Decoder</h3>
-                    <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                        文字列や画像ファイルを相互にBase64文字列へと変換・デコード処理を行います。
-                    </p>
-                    <div class="url-indicator">https://pbhub.io/tools/base64</div>
-                </div>
-            </a>
+            <div id="search-results-container">
+                <!-- 検索結果がここに表示されます -->
+            </div>
         </section>
-
-        <!-- ==========================================
-             VIEW 3: デザイン・パレット専用ビュー (Design Tools Category)
-             ========================================== -->
-        <section id="view-inputs" class="view-section">
-            <h2 style="font-family: var(--md-ref-typeface-brand); font-size: 1.4rem; font-weight: 500; margin-bottom: 16px; color: var(--md-sys-color-primary);">
-                デザイン・パレット ランチャー
-            </h2>
-
-            <a class="m3-card" href="https://pbhub.io/tools/m3-palette" target="_blank">
-                <md-ripple></md-ripple>
-                <div class="m3-card-content">
-                    <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">Material Theme Creator</h3>
-                    <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                        単一の基準色から、Material Design 3に完全適合したカラーシステムパレットを生成します。
-                    </p>
-                    <div class="url-indicator">https://pbhub.io/tools/m3-palette</div>
-                </div>
-            </a>
-
-            <a class="m3-card" href="https://pbhub.io/tools/svg-optimizer" target="_blank">
-                <md-ripple></md-ripple>
-                <div class="m3-card-content">
-                    <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">SVG Optimizer</h3>
-                    <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                        SVGコードから不要なタグやメタデータを削ぎ落とし、ウェブ用に高度に軽量化します。
-                    </p>
-                    <div class="url-indicator">https://pbhub.io/tools/svg-optimizer</div>
-                </div>
-            </a>
-        </section>
-
-        <!-- ==========================================
-             VIEW 4: テキスト・マークダウン専用ビュー (Text Tools Category)
-             ========================================== -->
-        <section id="view-lists" class="view-section">
-            <h2 style="font-family: var(--md-ref-typeface-brand); font-size: 1.4rem; font-weight: 500; margin-bottom: 16px; color: var(--md-sys-color-primary);">
-                テキスト・マークダウン ランチャー
-            </h2>
-
-            <a class="m3-card" href="https://pbhub.io/tools/markdown-editor" target="_blank">
-                <md-ripple></md-ripple>
-                <div class="m3-card-content">
-                    <h3 style="margin: 0 0 4px 0; font-family: var(--md-ref-typeface-brand); font-size: 1.1rem; font-weight: 500;">Markdown Editor</h3>
-                    <p style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem; line-height: 1.4;">
-                        リアルタイムでプレビューを確認しながら文章作成ができる、軽快なMarkdown記法エディタです。
-                    </p>
-                    <div class="url-indicator">https://pbhub.io/tools/markdown-editor</div>
-                </div>
-            </a>
-        </section>
-
     </main>
 
-    <!-- FAB (Floating Action Button): テーマ設定を呼び出し -->
-    <div class="fab-container">
-        <md-fab variant="primary" onclick="window.openSettingsDialog()" aria-label="テーマ設定">
-            <md-icon slot="icon"><span class="material-symbols-outlined">palette</span></md-icon>
-        </md-fab>
+    <!-- Floating Navigation Bar -->
+    <div class="floating-nav-container">
+        <nav class="custom-nav">
+            <div class="nav-item active" id="nav-tools" onclick="window.switchTab('tools')">
+                <div class="nav-icon-container">
+                    <span class="material-symbols-outlined">grid_view</span>
+                </div>
+                <span class="nav-label">ツール一覧</span>
+            </div>
+            <div class="nav-item" id="nav-search" onclick="window.switchTab('search')">
+                <div class="nav-icon-container">
+                    <span class="material-symbols-outlined">search</span>
+                </div>
+                <span class="nav-label">検索</span>
+            </div>
+        </nav>
     </div>
 
-    <!-- ==========================================
-         Custom Navigation Bar (ベースコードの構造を維持・タブをPBhub用に命名変更)
-         ========================================== -->
-    <nav class="custom-nav">
-        <div class="nav-item active" id="nav-home" onclick="window.switchTab('home')">
-            <div class="nav-icon-container">
-                <span class="material-symbols-outlined">home</span>
-            </div>
-            <span class="nav-label">すべて</span>
-        </div>
-        <div class="nav-item" id="nav-controls" onclick="window.switchTab('controls')">
-            <div class="nav-icon-container">
-                <span class="material-symbols-outlined">build</span>
-            </div>
-            <span class="nav-label">開発ツール</span>
-        </div>
-        <div class="nav-item" id="nav-inputs" onclick="window.switchTab('inputs')">
-            <div class="nav-icon-container">
-                <span class="material-symbols-outlined">palette</span>
-            </div>
-            <span class="nav-label">デザイン</span>
-        </div>
-        <div class="nav-item" id="nav-lists" onclick="window.switchTab('lists')">
-            <div class="nav-icon-container">
-                <span class="material-symbols-outlined">edit_document</span>
-            </div>
-            <span class="nav-label">テキスト</span>
-        </div>
-    </nav>
-
-    <!-- Dialog: ダイナミックカラー設定 (ベースコード設計思想準拠) -->
-    <md-dialog id="settings-dialog">
-        <div slot="headline">PBhub2 テーマカスタマイズ</div>
-        <form slot="content" id="form-theme" method="dialog" style="display:flex; flex-direction:column; gap:16px;">
-            <p style="margin:0; color: var(--md-sys-color-on-surface-variant); line-height: 1.5;">
-                ポーランドボールテーマの基本カラーをカスタマイズできます。Monetアルゴリズムが自動的に美しいマテリアルカラーパレットを抽出し、すべての要素に反映させます。
-            </p>
-            <div class="color-picker-wrapper">
-                <input type="color" id="source-color" value="#e2001a" oninput="window.updateTheme(this.value)">
-                <div style="display:flex; flex-direction:column;">
-                    <span style="font-weight:500; font-family: var(--md-ref-typeface-brand);">ベース基準カラー</span>
-                    <span id="color-value" style="font-size:0.9em; opacity:0.8; font-family: monospace;">#e2001a</span>
-                </div>
-            </div>
-        </form>
-        <div slot="actions">
-            <md-filled-button form="form-theme" value="close">閉じる</md-filled-button>
-        </div>
-    </md-dialog>
-
-    <!-- JavaScript Implementation -->
+    <!-- Scripts -->
     <script type="module">
-        // Import Material Web Components
         import '@material/web/all.js';
-        
-        // Import Material Color Utilities
         import { 
             argbFromHex, 
             themeFromSourceColor, 
-            applyTheme 
+            hexFromArgb
         } from "@material/material-color-utilities";
 
         // ==========================================
-        // --- Monet Color Engine Implementation (ベースコード完全維持) ---
+        // --- 1. Tool Database (JSON 直書き) ---
         // ==========================================
-        
-        let isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        // 初期ベース色をポーランドボール（赤・白）由来の鮮やかな赤色に変更
-        let currentSourceColor = '#e2001a';
+        const toolDatabase = [
+            {
+                "category": "主要ツール",
+                "icon": "star",
+                "apps": [
+                    { 
+                        "appname": "PBhub Generator", 
+                        "appinfo": "ポーランドボール風のアバターや画像をウェブ上で簡単に作成・カスタマイズできるツールです。", 
+                        "appurl": "https://example.com/pb-generator" 
+                    },
+                    { 
+                        "appname": "Ball Wiki Hub", 
+                        "appinfo": "世界各国のポーランドボール設定、キャラクター属性、ミームの歴史をまとめたデータベースです。", 
+                        "appurl": "https://example.com/ball-wiki" 
+                    },
+                    { 
+                        "appname": "Country Palette", 
+                        "appinfo": "各カントリーボールの公式・準公式カラースキームを素早く抽出できるデザイナー向け配色集です。", 
+                        "appurl": "https://example.com/palette" 
+                    }
+                ]
+            },
+            {
+                "category": "ユーティリティ",
+                "icon": "build",
+                "apps": [
+                    { 
+                        "appname": "Comic Striper", 
+                        "appinfo": "コマ割り、セリフバルーンの配置など、ポーランドボールのマンガ制作を支援するエディタツールです。", 
+                        "appurl": "https://example.com/comic-striper" 
+                    },
+                    { 
+                        "appname": "Flag Converter", 
+                        "appinfo": "国旗画像をカントリーボール仕様（手描き風テクスチャ、影効果）に自動変換します。", 
+                        "appurl": "https://example.com/flag-converter" 
+                    },
+                    { 
+                        "appname": "Name Randomizer", 
+                        "appinfo": "ミーム的な英語（Engrish）表現を含む、ユニークなセリフやタイトルをランダム生成します。", 
+                        "appurl": "https://example.com/engrish-generator" 
+                    }
+                ]
+            },
+            {
+                "category": "ミニゲーム",
+                "icon": "sports_esports",
+                "apps": [
+                    { 
+                        "appname": "Poland Clicker", 
+                        "appinfo": "ひたすら画面をクリックしてポーランドを宇宙に送る（Space!）ための宇宙船開発シミュレーターゲームです。", 
+                        "appurl": "https://example.com/poland-clicker" 
+                    },
+                    { 
+                        "appname": "Clay Toss", 
+                        "appinfo": "角度と力を調整して、他のカントリーボールに向けてクレイ（泥団子）を投げる物理演算ゲームです。", 
+                        "appurl": "https://example.com/clay-toss" 
+                    }
+                ]
+            }
+        ];
 
+        // ==========================================
+        // --- 2. Global State & Initialization ---
+        // ==========================================
+        let isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let currentSourceColor = '#6750a4';
+
+        // ==========================================
+        // --- 3. Dynamic Color Engine (MWC Protocol) ---
+        // ==========================================
         window.updateTheme = function(hexColor) {
             currentSourceColor = hexColor;
-            const colorValueEl = document.getElementById('color-value');
-            if(colorValueEl) colorValueEl.textContent = hexColor;
 
-            // 1. Convert Hex to ARGB
+            // Convert and Generate
             const argb = argbFromHex(hexColor);
-
-            // 2. Generate Theme (Tonal Palettes)
             const theme = themeFromSourceColor(argb);
-
-            // 3. Extract the correct scheme (light or dark)
             const scheme = isDarkMode ? theme.schemes.dark : theme.schemes.light;
 
-            // 4. Map to CSS Variables (Design Tokens)
             const root = document.documentElement;
             
-            // System Colors Mapping
-            const tokenMap = {
+            // Map tokens to CSS variables
+            const tokens = {
                 'primary': scheme.primary,
                 'on-primary': scheme.onPrimary,
                 'primary-container': scheme.primaryContainer,
@@ -690,86 +564,214 @@ title: タングルAIモード
                 'on-surface-variant': scheme.onSurfaceVariant,
                 'outline': scheme.outline,
                 'outline-variant': scheme.outlineVariant,
-                'shadow': scheme.shadow,
-                'scrim': scheme.scrim,
                 'inverse-surface': scheme.inverseSurface,
                 'inverse-on-surface': scheme.inverseOnSurface,
                 'inverse-primary': scheme.inversePrimary,
             };
 
-            for (const [key, value] of Object.entries(tokenMap)) {
-                // Convert integer ARGB back to Hex for CSS
+            for (const [key, value] of Object.entries(tokens)) {
                 const hex = hexFromArgb(value);
                 root.style.setProperty(`--md-sys-color-${key}`, hex);
+                
+                // RGB Component for transparency blending
+                const r = (value >> 16) & 0xff;
+                const g = (value >> 8) & 0xff;
+                const b = value & 0xff;
+                root.style.setProperty(`--md-sys-color-${key}-rgb`, `${r}, ${g}, ${b}`);
             }
+
+            // Sync color picker
+            const picker = document.getElementById('source-color-picker');
+            if(picker) picker.value = hexColor;
         };
 
-        // Utility: Convert ARGB Number to Hex String for CSS
-        function hexFromArgb(argb) {
-            const r = (argb >> 16) & 0xff;
-            const g = (argb >> 8) & 0xff;
-            const b = argb & 0xff;
-            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-        }
-
-        // --- Dark Mode Logic ---
-        
+        // ==========================================
+        // --- 4. Mode & Navigation Logic ---
+        // ==========================================
         window.toggleDarkMode = function() {
             isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
             
-            // Update Icon
             const icon = document.getElementById('theme-icon');
             if(icon) icon.textContent = isDarkMode ? 'light_mode' : 'dark_mode';
             
-            // Re-apply theme with new mode
             window.updateTheme(currentSourceColor);
         };
 
-        // --- Dialog Logic (ランチャー内用、名称のみ変更して機能は完全に同一) ---
-        
-        window.openSettingsDialog = function() {
-            const dialog = document.getElementById('settings-dialog');
-            if(dialog) dialog.show();
-        };
-
-        // ==========================================
-        // --- Custom Navigation Logic (ベースコード完全維持) ---
-        // ==========================================
-        
         window.switchTab = function(tabId) {
-            // Hide all views
+            // Section transition
             document.querySelectorAll('.view-section').forEach(el => {
                 el.classList.remove('active');
             });
-            
-            // Unset active on all nav items
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('active');
-            });
-
-            // Show target view
             const targetView = document.getElementById('view-' + tabId);
             if(targetView) targetView.classList.add('active');
 
-            // Set active on clicked nav item
+            // Nav item transition
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+            });
             const targetNav = document.getElementById('nav-' + tabId);
             if(targetNav) targetNav.classList.add('active');
             
-            // Scroll to top smoothly
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // 検索タブに移動した際は入力エリアにフォーカス
+            if (tabId === 'search') {
+                setTimeout(() => {
+                    document.getElementById('search-input')?.focus();
+                }, 100);
+            }
         };
 
-        // --- Initialization ---
+        // ==========================================
+        // --- 5. Rendering Tools List & Search ---
+        // ==========================================
         
-        // Initial Theme Apply
-        window.updateTheme(currentSourceColor);
-        
-        // Setup Icon based on initial state
-        const initialIcon = document.getElementById('theme-icon');
-        if(initialIcon) initialIcon.textContent = isDarkMode ? 'light_mode' : 'dark_mode';
+        // ツールカードのHTML文字列を構築
+        function createToolCardHtml(app) {
+            return `
+                <div class="tool-card">
+                    <div>
+                        <div class="tool-header">
+                            <div class="tool-icon">
+                                <span class="material-symbols-outlined">apps</span>
+                            </div>
+                            <h3 class="tool-name">${escapeHtml(app.appname)}</h3>
+                        </div>
+                        <p class="tool-info">${escapeHtml(app.appinfo)}</p>
+                    </div>
+                    <div class="tool-action">
+                        <md-filled-button href="${escapeHtml(app.appurl)}" target="_blank">
+                            開く
+                            <span slot="end" class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
+                        </md-filled-button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // HTMLエスケープ処理
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
+        }
+
+        // ツール一覧のレンダリング
+        function renderToolsList() {
+            const container = document.getElementById('tools-container');
+            if (!container) return;
+
+            let html = '';
+            toolDatabase.forEach(categoryObj => {
+                html += `
+                    <div class="glass-card">
+                        <div class="section-title">
+                            <span class="material-symbols-outlined">${escapeHtml(categoryObj.icon || 'folder')}</span>
+                            ${escapeHtml(categoryObj.category)}
+                        </div>
+                        <div class="dynamic-grid">
+                `;
+
+                categoryObj.apps.forEach(app => {
+                    html += createToolCardHtml(app);
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 検索結果のリアルタイムレンダリング
+        function performSearch(query) {
+            const resultsContainer = document.getElementById('search-results-container');
+            if (!resultsContainer) return;
+
+            const trimmedQuery = query.trim().toLowerCase();
+            if (trimmedQuery === '') {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-symbols-outlined">search</span>
+                        <p>検索ワードを入力すると、ここに該当するツールが表示されます。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 検索実行
+            const matchingApps = [];
+            toolDatabase.forEach(categoryObj => {
+                categoryObj.apps.forEach(app => {
+                    const nameMatch = app.appname.toLowerCase().includes(trimmedQuery);
+                    const infoMatch = app.appinfo.toLowerCase().includes(trimmedQuery);
+                    if (nameMatch || infoMatch) {
+                        matchingApps.push(app);
+                    }
+                });
+            });
+
+            if (matchingApps.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-symbols-outlined">search_off</span>
+                        <p>「${escapeHtml(query)}」に一致するツールが見つかりませんでした。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 結果の描画
+            let html = `
+                <div class="glass-card">
+                    <div class="section-title">
+                        <span class="material-symbols-outlined">find_in_page</span>
+                        検索結果 (${matchingApps.length}件)
+                    </div>
+                    <div class="dynamic-grid">
+            `;
+
+            matchingApps.forEach(app => {
+                html += createToolCardHtml(app);
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            resultsContainer.innerHTML = html;
+        }
+
+        // ==========================================
+        // --- 6. Event Listeners & Boot ---
+        // ==========================================
+
+        document.getElementById('source-color-picker').addEventListener('input', (e) => {
+            window.updateTheme(e.target.value);
+        });
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+
+        window.addEventListener('load', () => {
+            // 初期カラー展開
+            window.updateTheme(currentSourceColor);
+            if(isDarkMode) document.body.classList.add('dark-mode');
+
+            // ツール一覧と初期検索結果（空状態）の描画
+            renderToolsList();
+            performSearch('');
+        });
 
     </script>
 </body>
