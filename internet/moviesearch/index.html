@@ -1,0 +1,503 @@
+---
+layout: default
+title: 動画を検索
+---
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <title>PB-Intelligence Videos</title>
+
+    <!-- Google Fonts & Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+    <style>
+        :root {
+            --ai-grad-primary: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #3b82f6 100%);
+            --ai-grad-active: linear-gradient(135deg, #f43f5e 0%, #8b5cf6 50%, #0ea5e9 100%);
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-blur: 25px;
+            --text-main: #1d1d1f;
+            --text-sub: #48484a;
+            --bg-base: #f5f5f7;
+            --m3-easing: cubic-bezier(0.32, 0.72, 0, 1);
+            --transition-smooth: 0.5s var(--m3-easing);
+        }
+
+        .dark-mode {
+            --glass-bg: rgba(28, 28, 30, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f5f5f7;
+            --text-sub: #a1a1a6;
+            --bg-base: #000000;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            transition: background-color var(--transition-smooth);
+            overflow: hidden;
+            height: 100vh; width: 100vw;
+        }
+
+        /* --- Background --- */
+        .liquid-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; overflow: hidden; filter: blur(80px); opacity: 0.8;
+            pointer-events: none;
+        }
+        .liquid-blob {
+            position: absolute;
+            background: var(--ai-grad-primary);
+            border-radius: 50%;
+            width: 600px; height: 600px;
+            mix-blend-mode: multiply;
+            animation: blobFlow 20s infinite alternate ease-in-out;
+            will-change: transform;
+        }
+        .dark-mode .liquid-blob { mix-blend-mode: screen; opacity: 0.5; }
+
+        @keyframes blobFlow {
+            0% { transform: translate(-10%, -10%) scale(1); border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; }
+            50% { transform: translate(20%, 10%) scale(1.1); border-radius: 30% 60% 70% 40%/50% 60% 30% 60%; }
+            100% { transform: translate(-5%, 20%) scale(0.9); border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; }
+        }
+
+        /* --- Header --- */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: 72px; padding: 0 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .logo {
+            font-weight: 700; font-size: 22px; letter-spacing: -0.5px;
+            background: var(--ai-grad-primary);
+            -webkit-background-clip: text; -webkit-fill-color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .logo img { width: 32px; height: 32px; object-fit: contain; }
+
+        /* --- App Layout --- */
+        #app-viewport {
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 200px; /* Space for search bar */
+        }
+
+        main {
+            padding: 100px 24px 150px;
+            max-width: 900px; margin: 0 auto;
+            transition: opacity 0.3s ease;
+        }
+
+        /* --- Cards & UI Elements --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease;
+        }
+        h2 { font-size: 24px; margin-top: 0; font-weight: 700; }
+
+        .ai-btn {
+            border: none; outline: none;
+            padding: 14px 24px; border-radius: 16px;
+            font-weight: 600; font-size: 14px;
+            color: white; cursor: pointer;
+            background: var(--ai-grad-primary);
+            transition: all 0.5s var(--m3-easing);
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .ai-btn:active { transform: scale(0.95); }
+
+        /* --- Search Bar Container --- */
+        .search-container {
+            position: fixed; bottom: 100px; left: 50%;
+            transform: translateX(-50%);
+            width: 90%; max-width: 600px;
+            z-index: 1000;
+        }
+        .search-rail {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .search-input-group {
+            display: flex; gap: 8px; align-items: center;
+        }
+        .glass-input {
+            flex: 1; padding: 14px 20px;
+            border-radius: 20px; border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.2);
+            color: var(--text-main); font-size: 16px;
+            outline: none; transition: 0.3s;
+        }
+        .search-actions {
+            display: flex; gap: 8px;
+        }
+        .search-type-btn {
+            flex: 1; padding: 10px; border-radius: 14px; border: 1px solid var(--glass-border);
+            background: var(--glass-bg); color: var(--text-main);
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+            transition: 0.3s;
+        }
+        .search-type-btn.active {
+            background: var(--ai-grad-primary); color: white; border-color: transparent;
+        }
+
+        /* --- Navigation --- */
+        .nav-container {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%); z-index: 500;
+        }
+        .nav-rail {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+            padding: 8px; border-radius: 40px; border: 1px solid var(--glass-border);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.15);
+        }
+        .nav-item {
+            width: 50px; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border-radius: 25px; color: var(--text-sub);
+            transition: all 0.4s var(--m3-easing);
+        }
+        .nav-item.active {
+            background: var(--ai-grad-primary); color: white;
+            transform: scale(1.1);
+        }
+
+        /* --- Iframe Preview --- */
+        .preview-overlay {
+            position: fixed; top: 72px; left: 0; width: 100%; height: calc(100% - 72px);
+            background: var(--bg-base); z-index: 90;
+            display: none; flex-direction: column;
+        }
+        .preview-overlay.active { display: flex; animation: viewIn 0.5s var(--m3-easing); }
+        .preview-header {
+            padding: 10px 20px; background: var(--glass-bg);
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        iframe { flex: 1; border: none; width: 100%; height: 100%; }
+
+        /* --- View Mgmt --- */
+        .view { display: none; }
+        .view.active { display: block; animation: viewIn 0.5s var(--m3-easing); }
+        @keyframes viewIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .channel-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.05); padding: 12px 20px;
+            border-radius: 16px; margin-bottom: 10px;
+        }
+
+        /* Squishy Effect */
+        @keyframes squishy {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.1, 0.9); }
+            50% { transform: scale(0.95, 1.05); }
+            100% { transform: scale(1); }
+        }
+        .squish-active { animation: squishy 0.4s var(--m3-easing); }
+
+    </style>
+</head>
+<body>
+
+    <div class="liquid-bg">
+        <div class="liquid-blob" id="blob-1" style="left: -10%; top: -10%;"></div>
+        <div class="liquid-blob" id="blob-2" style="right: -10%; bottom: -10%; background: var(--ai-grad-active); animation-delay: -5s;"></div>
+    </div>
+
+    <header>
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/lol.png" alt="AI Ball">
+            Polska Tube
+        </div>
+        <button class="nav-item" id="theme-btn" style="background:var(--glass-bg); border:1px solid var(--glass-border);">
+            <span class="material-symbols-outlined">light_mode</span>
+        </button>
+    </header>
+
+    <!-- Search Overlay / Iframe -->
+    <div class="preview-overlay" id="search-preview">
+        <div class="preview-header">
+            <span id="preview-title" style="font-weight: 600; font-size: 14px;">Video Search Results</span>
+            <button class="ai-btn" onclick="closePreview()" style="padding: 8px 16px; border-radius: 12px;">閉じる</button>
+        </div>
+        <iframe id="search-iframe" src="about:blank"></iframe>
+    </div>
+
+    <div id="app-viewport">
+        <main id="main-content">
+            <!-- Home Section -->
+            <section id="view-home" class="view active">
+                <div class="glass-card tilt-card">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <img src="https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/balls/poland/normal.png" style="width: 60px;">
+                        <div>
+                            <h2 style="margin:0;">動画を見よう！</h2>
+                            <p style="color: var(--text-sub); margin: 0; font-size: 14px;">自分の希望する動画を観る方法</p>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-sub); line-height: 1.6; font-size: 14px;">
+                        下の検索バーから動画を探しましょう。「Intelligence」を選択すると、AIが動画の文脈を理解して検索をサポートします。
+                    </p>
+                </div>
+
+                <div class="glass-card tilt-card" id="fav-summary">
+                    <h2>Favorite Channels</h2>
+                    <div id="fav-list-mini">
+                        <p style="opacity: 0.5; font-size: 13px;">お気に入りチャンネルがここに表示されます。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Favorites Section -->
+            <section id="view-fav" class="view">
+                <div class="glass-card">
+                    <h2>Channel Manager</h2>
+                    <p style="color: var(--text-sub); margin-bottom: 20px; font-size: 14px;">YouTube チャンネルIDを登録してクイックアクセス。</p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+                        <input type="text" id="new-channel-id" class="glass-input" placeholder="Channel ID (UC...)">
+                        <button class="ai-btn" onclick="addChannel()">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                    </div>
+                    <div id="full-fav-list">
+                        <!-- List populated by JS -->
+                    </div>
+                    <a href="https://seostudio.tools/ja/youtube-channel-id" target="_blank" style="color: #6366f1; font-size: 12px; text-decoration: none;">IDの取得はこちらから →</a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Bottom Search Bar -->
+    <div class="search-container">
+        <div class="search-rail">
+            <div class="search-input-group">
+                <input type="text" id="main-search-input" class="glass-input" placeholder="キーワードを入力...">
+                <button class="ai-btn" id="search-trigger" onclick="executeSearch()">
+                    <span class="material-symbols-outlined">search</span>
+                </button>
+            </div>
+            <div class="search-actions">
+                <button class="search-type-btn active" id="btn-normal" onclick="setSearchType('normal')">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">movie</span> Normal
+                </button>
+                <button class="search-type-btn" id="btn-intel" onclick="setSearchType('intelligence')">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">psychology</span> Intelligence
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-container">
+        <nav class="nav-rail">
+            <div class="nav-item active" data-view="view-home">
+                <span class="material-symbols-outlined">home</span>
+            </div>
+            <div class="nav-item" data-view="view-fav">
+                <span class="material-symbols-outlined">star</span>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        /**
+         * PB-Intelligence Videos Logic
+         */
+        let currentSearchType = 'normal'; // 'normal' or 'intelligence'
+        let favorites = JSON.parse(localStorage.getItem('pb_fav_channels') || '[]');
+
+        const viewport = document.getElementById('app-viewport');
+        const mainContent = document.getElementById('main-content');
+        const searchPreview = document.getElementById('search-preview');
+        const searchIframe = document.getElementById('search-iframe');
+        const searchInput = document.getElementById('main-search-input');
+
+        // --- 1. Search Logic ---
+        function setSearchType(type) {
+            currentSearchType = type;
+            document.getElementById('btn-normal').classList.toggle('active', type === 'normal');
+            document.getElementById('btn-intel').classList.toggle('active', type === 'intelligence');
+            searchInput.placeholder = type === 'normal' ? 'キーワードを入力...' : 'AIに動画調査を依頼...';
+        }
+
+        function executeSearch(queryOverride = null) {
+            const query = queryOverride || searchInput.value.trim();
+            if (!query) return;
+
+            let url = "";
+            if (currentSearchType === 'normal') {
+                url = `https://www.bing.com/videos/search?q=${encodeURIComponent(query)}`;
+            } else {
+                url = `https://www.bing.com/copilotsearch?q=${encodeURIComponent(query)}+という動画を調べて`;
+            }
+
+            searchIframe.src = url;
+            searchPreview.classList.add('active');
+            document.getElementById('preview-title').innerText = `${currentSearchType.toUpperCase()} Results: ${query}`;
+        }
+
+        function closePreview() {
+            searchPreview.classList.remove('active');
+            searchIframe.src = "about:blank";
+        }
+
+        // --- 2. Favorite Channels Logic ---
+        function renderFavorites() {
+            const fullList = document.getElementById('full-fav-list');
+            const miniList = document.getElementById('fav-list-mini');
+            
+            fullList.innerHTML = '';
+            miniList.innerHTML = '';
+
+            if (favorites.length === 0) {
+                fullList.innerHTML = '<p style="opacity:0.5; text-align:center;">保存されたチャンネルはありません</p>';
+                miniList.innerHTML = '<p style="opacity:0.5; font-size:13px;">保存されたチャンネルはありません</p>';
+                return;
+            }
+
+            favorites.forEach((id, index) => {
+                // Full List Item
+                const item = document.createElement('div');
+                item.className = 'channel-item';
+                item.innerHTML = `
+                    <span style="font-family: monospace; font-size:13px;">${id}</span>
+                    <div style="display:flex; gap:8px;">
+                        <button class="ai-btn" style="padding:8px; border-radius:10px; background:#10b981;" onclick="searchChannel('${id}')">
+                            <span class="material-symbols-outlined">play_circle</span>
+                        </button>
+                        <button class="ai-btn" style="padding:8px; border-radius:10px; background:#ef4444;" onclick="removeChannel(${index})">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                `;
+                fullList.appendChild(item);
+
+                // Mini List Item
+                const miniBtn = document.createElement('button');
+                miniBtn.className = 'ai-btn';
+                miniBtn.style = 'margin: 5px; font-size: 12px; padding: 10px 15px;';
+                miniBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">account_circle</span> ${id.substring(0, 8)}...`;
+                miniBtn.onclick = () => searchChannel(id);
+                miniList.appendChild(miniBtn);
+            });
+        }
+
+        function addChannel() {
+            const input = document.getElementById('new-channel-id');
+            const id = input.value.trim();
+            if (id && !favorites.includes(id)) {
+                favorites.push(id);
+                localStorage.setItem('pb_fav_channels', JSON.stringify(favorites));
+                input.value = '';
+                renderFavorites();
+            }
+        }
+
+        function removeChannel(index) {
+            favorites.splice(index, 1);
+            localStorage.setItem('pb_fav_channels', JSON.stringify(favorites));
+            renderFavorites();
+        }
+
+        function searchChannel(id) {
+            currentSearchType = 'normal';
+            executeSearch(id);
+        }
+
+        // --- 3. UI Interactions ---
+        function initTilt() {
+            const cards = document.querySelectorAll('.tilt-card');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = (y - centerY) / 15;
+                    const rotateY = (centerX - x) / 15;
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.01, 1.01, 1.01)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                });
+            });
+        }
+
+        // Nav Switch
+        const navItems = document.querySelectorAll('.nav-item[data-view]');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const viewId = item.getAttribute('data-view');
+                navItems.forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
+                document.querySelectorAll('.view').forEach(v => {
+                    v.classList.toggle('active', v.id === viewId);
+                });
+                viewport.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Theme Toggle
+        const themeBtn = document.getElementById('theme-btn');
+        themeBtn.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            themeBtn.querySelector('span').textContent = isDark ? 'dark_mode' : 'light_mode';
+        });
+
+        // Blob Parallax
+        window.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX / window.innerWidth - 0.5) * 40;
+            const moveY = (e.clientY / window.innerHeight - 0.5) * 40;
+            document.getElementById('blob-1').style.transform = `translate(${moveX}px, ${moveY}px)`;
+            document.getElementById('blob-2').style.transform = `translate(${-moveX * 1.5}px, ${-moveY * 1.5}px)`;
+        });
+
+        // Click Squish
+        document.addEventListener('mousedown', (e) => {
+            const target = e.target.closest('.glass-card, .ai-btn, .nav-item, .search-type-btn');
+            if (target) {
+                target.classList.remove('squish-active');
+                void target.offsetWidth;
+                target.classList.add('squish-active');
+            }
+        });
+
+        // Init
+        window.onload = () => {
+            initTilt();
+            renderFavorites();
+            // Enter key search
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') executeSearch();
+            });
+        };
+    </script>
+</body>
+</html>
