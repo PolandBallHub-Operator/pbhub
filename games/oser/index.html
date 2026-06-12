@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polandball 〇thell〇 (リバーシ)</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --board-color: #2e7d32;
+            --grid-color: #1b5e20;
+            --black-ball: #333;
+            --white-ball: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            touch-action: manipulation;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* ステータス表示 */
+        .status-panel {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-turn {
+            border-bottom: 4px solid #4a90e2;
+            padding-bottom: 2px;
+        }
+
+        /* 盤面 */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            background-color: var(--grid-color);
+            border: 8px solid #1b5e20;
+            border-radius: 8px;
+            width: min(90vw, 500px);
+            height: min(90vw, 500px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .cell {
+            background-color: var(--board-color);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cell:hover {
+            background-color: #388e3c;
+        }
+
+        /* 置ける場所のガイド */
+        .hint::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+        }
+
+        /* ポーランドボールのデザイン */
+        .country-ball {
+            width: 85%;
+            height: 80%;
+            border: 3px solid #000;
+            border-radius: 52% 48% 45% 55% / 55% 55% 45% 45%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset -6px -6px 0 rgba(0,0,0,0.15);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            animation: spawn 0.4s ease-out;
+        }
+
+        @keyframes spawn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .black-ball {
+            background-color: var(--black-ball);
+        }
+
+        .white-ball {
+            background-color: var(--white-ball);
+        }
+
+        /* 目のパーツ */
+        .eyes-container {
+            display: flex;
+            gap: 6px;
+            margin-top: -8px;
+            pointer-events: none;
+        }
+
+        .pb-eye {
+            width: 12px;
+            height: 16px;
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        /* 表情 */
+        .pb-eye.happy {
+            height: 8px;
+            border-radius: 12px 12px 0 0;
+            margin-top: 6px;
+        }
+
+        .pb-eye.angry {
+            transform: rotate(15deg);
+            border-radius: 0 0 50% 50%;
+        }
+
+        .pb-eye.sad {
+            height: 10px;
+            border-radius: 0 0 12px 12px;
+        }
+
+        /* メッセージ */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 100;
+            display: none;
+            width: 280px;
+        }
+
+        .message-box h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .btn {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background: #357abd;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 90;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="status-panel">
+            <div id="black-score-area" class="score-item current-turn">
+                <span>BLACK:</span>
+                <span id="black-count">2</span>
+            </div>
+            <div id="white-score-area" class="score-item">
+                <span>WHITE:</span>
+                <span id="white-count">2</span>
+            </div>
+        </div>
+
+        <div class="board" id="board">
+            <!-- JSで生成 -->
+        </div>
+
+        <button class="btn" onclick="initGame()">リセット</button>
+    </div>
+
+    <div id="overlay" class="overlay"></div>
+    <div id="message-box" class="message-box">
+        <h2 id="winner-text">決着！</h2>
+        <p id="final-score"></p>
+        <button class="btn" onclick="closeModal()">もう一度遊ぶ</button>
+    </div>
+
+    <script>
+        const boardElement = document.getElementById('board');
+        const blackCountEl = document.getElementById('black-count');
+        const whiteCountEl = document.getElementById('white-count');
+        const blackArea = document.getElementById('black-score-area');
+        const whiteArea = document.getElementById('white-score-area');
+        const messageBox = document.getElementById('message-box');
+        const overlay = document.getElementById('overlay');
+        const winnerText = document.getElementById('winner-text');
+        const finalScoreText = document.getElementById('final-score');
+
+        let board = [];
+        let currentPlayer = 1; // 1: 黒, 2: 白
+        const EMPTY = 0;
+        const BLACK = 1;
+        const WHITE = 2;
+
+        // 初期化
+        function initGame() {
+            board = Array(8).fill().map(() => Array(8).fill(EMPTY));
+            board[3][3] = WHITE;
+            board[3][4] = BLACK;
+            board[4][3] = BLACK;
+            board[4][4] = WHITE;
+            currentPlayer = BLACK;
+            renderBoard();
+            updateStatus();
+            closeModal();
+        }
+
+        // 盤面描画
+        function renderBoard() {
+            boardElement.innerHTML = '';
+            const validMoves = getValidMoves(currentPlayer);
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    if (validMoves.some(m => m.r === r && m.c === c)) {
+                        cell.classList.add('hint');
+                        cell.onclick = () => handleMove(r, c);
+                    }
+
+                    if (board[r][c] !== EMPTY) {
+                        const ball = document.createElement('div');
+                        const isBlack = board[r][c] === BLACK;
+                        ball.className = `country-ball ${isBlack ? 'black-ball' : 'white-ball'}`;
+                        
+                        // 表情の決定
+                        // 優勢ならハッピー、劣勢なら悲しい、接戦なら普通
+                        const scoreDiff = isBlack ? (getScore().black - getScore().white) : (getScore().white - getScore().black);
+                        let eyeClass = '';
+                        if (scoreDiff > 5) eyeClass = 'happy';
+                        else if (scoreDiff < -5) eyeClass = 'sad';
+                        
+                        ball.innerHTML = `
+                            <div class="eyes-container">
+                                <div class="pb-eye ${eyeClass}"></div>
+                                <div class="pb-eye ${eyeClass}"></div>
+                            </div>
+                        `;
+                        cell.appendChild(ball);
+                    }
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        // スコア更新とターンの表示
+        function updateStatus() {
+            const score = getScore();
+            blackCountEl.innerText = score.black;
+            whiteCountEl.innerText = score.white;
+
+            if (currentPlayer === BLACK) {
+                blackArea.classList.add('current-turn');
+                whiteArea.classList.remove('current-turn');
+            } else {
+                whiteArea.classList.add('current-turn');
+                blackArea.classList.remove('current-turn');
+            }
+        }
+
+        function getScore() {
+            let black = 0, white = 0;
+            board.forEach(row => row.forEach(val => {
+                if (val === BLACK) black++;
+                if (val === WHITE) white++;
+            }));
+            return { black, white };
+        }
+
+        // 合法手を取得
+        function getValidMoves(player) {
+            const moves = [];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (canPlace(r, c, player).length > 0) {
+                        moves.push({ r, c });
+                    }
+                }
+            }
+            return moves;
+        }
+
+        // 指定した場所に置けるかチェックし、裏返せる方向を返す
+        function canPlace(r, c, player) {
+            if (board[r][c] !== EMPTY) return [];
+            const opponent = player === BLACK ? WHITE : BLACK;
+            const directions = [
+                [-1,-1], [-1,0], [-1,1],
+                [0,-1],          [0,1],
+                [1,-1],  [1,0],  [1,1]
+            ];
+            let flippable = [];
+
+            for (const [dr, dc] of directions) {
+                let temp = [];
+                let currR = r + dr;
+                let currC = c + dc;
+
+                while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8 && board[currR][currC] === opponent) {
+                    temp.push({ r: currR, c: currC });
+                    currR += dr;
+                    currC += dc;
+                }
+
+                if (temp.length > 0 && currR >= 0 && currR < 8 && currC >= 0 && currC < 8 && board[currR][currC] === player) {
+                    flippable = flippable.concat(temp);
+                }
+            }
+            return flippable;
+        }
+
+        // 手を打つ
+        function handleMove(r, c) {
+            const flippable = canPlace(r, c, currentPlayer);
+            if (flippable.length === 0) return;
+
+            board[r][c] = currentPlayer;
+            flippable.forEach(pos => {
+                board[pos.r][pos.c] = currentPlayer;
+            });
+
+            // ターン交代
+            currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+            
+            // 相手が打てない場合
+            if (getValidMoves(currentPlayer).length === 0) {
+                currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+                // 両者打てないなら終了
+                if (getValidMoves(currentPlayer).length === 0) {
+                    endGame();
+                    return;
+                }
+            }
+
+            renderBoard();
+            updateStatus();
+        }
+
+        function endGame() {
+            renderBoard();
+            updateStatus();
+            const score = getScore();
+            if (score.black > score.white) {
+                winnerText.innerText = "BLACKの勝利！";
+            } else if (score.white > score.black) {
+                winnerText.innerText = "WHITEの勝利！";
+            } else {
+                winnerText.innerText = "引き分け！";
+            }
+            finalScoreText.innerText = `BLACK: ${score.black} - WHITE: ${score.white}`;
+            messageBox.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closeModal() {
+            messageBox.style.display = 'none';
+            overlay.style.display = 'none';
+            if (getValidMoves(currentPlayer).length === 0 && getValidMoves(currentPlayer === BLACK ? WHITE : BLACK).length === 0) {
+                initGame();
+            }
+        }
+
+        // 初回起動
+        window.onload = initGame;
+    </script>
+</body>
+</html>
+
