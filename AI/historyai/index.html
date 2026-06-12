@@ -1,0 +1,1025 @@
+---
+layout: default
+title: 歴史AI
+---
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MWC Google Blue Catalog</title>
+
+    <!-- Google Fonts & Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+    <!-- Import Map for Material Web -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@material/web/": "https://esm.run/@material/web/"
+        }
+    }
+    </script>
+
+    <style>
+        /* * Material 3 Design Tokens - Google Blue (Fixed)
+         */
+        :root {
+            /* Light Mode Tokens */
+            --md-sys-color-primary: #0b57d0;
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #d3e3fd;
+            --md-sys-color-on-primary-container: #041e49;
+            --md-sys-color-secondary: #006391;
+            --md-sys-color-on-secondary: #ffffff;
+            --md-sys-color-secondary-container: #c2e7ff;
+            --md-sys-color-on-secondary-container: #001d35;
+            --md-sys-color-tertiary: #0b57d0;
+            --md-sys-color-on-tertiary: #ffffff;
+            --md-sys-color-background: #f8f9fa;
+            --md-sys-color-on-background: #1f1f1f;
+            --md-sys-color-surface: #f8f9fa;
+            --md-sys-color-on-surface: #1f1f1f;
+            --md-sys-color-surface-variant: #e1e3e1;
+            --md-sys-color-on-surface-variant: #444746;
+            --md-sys-color-outline: #747775;
+            --md-sys-color-outline-variant: #c4c7c5;
+            --md-sys-color-error: #b3261e;
+            --md-sys-color-on-error: #ffffff;
+            
+            /* Typography */
+            --md-ref-typeface-brand: 'Google Sans', sans-serif;
+            --md-ref-typeface-plain: 'Roboto', sans-serif;
+
+            --transition-duration: 0.3s;
+        }
+
+        /* Dark Mode Override */
+        [data-theme="dark"] {
+            --md-sys-color-primary: #a8c7fa;
+            --md-sys-color-on-primary: #062e6f;
+            --md-sys-color-primary-container: #0842a0;
+            --md-sys-color-on-primary-container: #d3e3fd;
+            --md-sys-color-secondary: #7fcfff;
+            --md-sys-color-on-secondary: #00334d;
+            --md-sys-color-secondary-container: #004a6e;
+            --md-sys-color-on-secondary-container: #c2e7ff;
+            --md-sys-color-background: #1b1b1b;
+            --md-sys-color-on-background: #e3e3e3;
+            --md-sys-color-surface: #1b1b1b;
+            --md-sys-color-on-surface: #e3e3e3;
+            --md-sys-color-surface-variant: #444746;
+            --md-sys-color-on-surface-variant: #c4c7c5;
+            --md-sys-color-outline: #8e918f;
+            --md-sys-color-outline-variant: #444746;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--md-ref-typeface-plain);
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
+            transition: background-color var(--transition-duration), color var(--transition-duration), margin-left 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Layout */
+        header {
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            margin: 0;
+            font-family: var(--md-ref-typeface-brand);
+            font-size: 22px;
+            font-weight: 400;
+        }
+
+        main {
+            flex: 1;
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            padding-bottom: 120px;
+            transition: padding-bottom 0.3s;
+        }
+
+        /* View Management */
+        .view-section {
+            display: none;
+            animation: fadeScale 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeScale {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-card {
+            background-color: var(--md-sys-color-surface);
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .section-title {
+            font-family: var(--md-ref-typeface-brand);
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 20px;
+            color: var(--md-sys-color-primary);
+        }
+
+        h3.sub-title {
+            font-family: var(--md-ref-typeface-plain);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface-variant);
+            margin: 24px 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .flex-row-wrap {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* Hero Display for Google Blue */
+        .hero-banner {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border-radius: 28px;
+            padding: 32px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .hero-banner h2 {
+            font-family: var(--md-ref-typeface-brand);
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        /* Floating Action Button */
+        .fab-container {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            z-index: 6;
+            transition: all 0.3s;
+        }
+
+        /* Custom Navigation */
+        .custom-nav {
+            position: fixed;
+            background-color: var(--md-sys-color-surface);
+            display: flex;
+            align-items: center;
+            z-index: 100;
+            transition: all 0.3s ease;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            justify-content: space-evenly;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -1px 3px 0 rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            height: 100%;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            user-select: none;
+        }
+
+        .nav-icon-container {
+            width: 64px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 16px;
+            margin-bottom: 4px;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .nav-item .material-symbols-outlined {
+            font-size: 24px;
+            font-variation-settings: 'FILL' 0;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item.active .nav-icon-container {
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .nav-item.active .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        @media (min-width: 600px) {
+            body { margin-left: 80px; }
+            main { padding-bottom: 32px; }
+            .custom-nav {
+                top: 0; bottom: 0; left: 0; right: auto;
+                width: 80px; height: 100%; flex-direction: column;
+                justify-content: flex-start; padding-top: 32px;
+            }
+            .nav-item { flex: none; height: 72px; width: 100%; margin-bottom: 12px; }
+            .fab-container { bottom: 32px; right: 32px; }
+        }
+
+        /* M3 Cards Custom */
+        .m3-card {
+            border-radius: 12px;
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 16px;
+            overflow: hidden;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
+        .m3-card.elevated {
+            border: none;
+            background-color: var(--md-sys-color-surface-variant);
+            box-shadow: 0px 1px 3px 1px rgba(0,0,0,0.15);
+        }
+        .m3-card-content { padding: 16px; }
+
+        /* Dark Mode for Dialog explicitly */
+        md-dialog {
+            --md-dialog-container-color: var(--md-sys-color-surface);
+        }
+
+        /* =========================================
+           Polandball Custom CSS
+           ========================================= */
+        .country-ball {
+            width: 100px;
+            height: 90px;
+            border: 4px solid #000;
+            /* わずかに左右非対称、かつ手描き感を出すための変形 */
+            border-radius: 52% 48% 45% 55% / 55% 55% 45% 45%;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset -8px -8px 0 rgba(0,0,0,0.1); /* 立体感を出す影 */
+            transition: transform 0.2s ease;
+            flex-shrink: 0; /* 縦伸び防止 */
+        }
+
+        /* ホバー時の動き（ぷるぷる感を出す） */
+        .country-ball:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        /* 目のパーツ */
+        .eyes-container {
+            display: flex;
+            gap: 12px;
+            margin-top: -10px; /* 目を少し上に配置 */
+            pointer-events: none;
+        }
+
+        .pb-eye {
+            width: 22px;
+            height: 28px;
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 50%;
+        }
+
+        /* 目の表情バリエーション */
+        .pb-eye.happy {
+            height: 15px;
+            border-radius: 20px 20px 0 0; /* 半月型（にっこり） */
+            margin-top: 10px;
+        }
+
+        .pb-eye.angry {
+            transform: rotate(15deg);
+            border-radius: 0 0 50% 50%; /* 怒り目（上部を直線に） */
+        }
+
+        /* 特殊：ポーランド（上下逆転） */
+        .pb-poland {
+            background: linear-gradient(to bottom, #dc143c 50%, #ffffff 50%);
+        }
+
+        /* Chat UI Specifics */
+        .chat-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            align-items: flex-start;
+            animation: fadeScale 0.3s ease forwards;
+        }
+        
+        .chat-row.reverse {
+            flex-direction: row-reverse;
+        }
+
+        .ball-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            width: 100px;
+        }
+
+        .ball-name {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--md-sys-color-on-surface);
+            text-align: center;
+            font-family: var(--md-ref-typeface-brand);
+        }
+
+        .chat-bubble {
+            flex: 1;
+            padding: 16px 20px;
+            border-radius: 4px 20px 20px 20px;
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+            position: relative;
+            margin-top: 10px;
+            font-size: 1rem;
+            line-height: 1.5;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .chat-row.reverse .chat-bubble {
+            border-radius: 20px 4px 20px 20px;
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .loading-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 40px 0;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+        
+        .story-header {
+            text-align: center;
+            margin-bottom: 32px;
+            font-family: var(--md-ref-typeface-brand);
+            color: var(--md-sys-color-primary);
+        }
+
+        /* 隠しファイル入力 */
+        #restore-file {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <md-icon-button><span class="material-symbols-outlined">public</span></md-icon-button>
+            <h1>Polandball History</h1>
+        </div>
+        <div style="display:flex; align-items:center;">
+            <md-icon-button onclick="window.toggleDarkMode()">
+                <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+            </md-icon-button>
+            <md-icon-button id="usage-anchor">
+                <span class="material-symbols-outlined">info</span>
+            </md-icon-button>
+            <md-menu anchor="usage-anchor" id="usage-menu">
+                <md-menu-item onclick="window.showGoogleInfo()">
+                    <div slot="headline">About App</div>
+                </md-menu-item>
+            </md-menu>
+        </div>
+    </header>
+
+    <main>
+        <!-- HOME VIEW (Generate Story) -->
+        <section id="view-home" class="view-section active">
+            <div class="hero-banner">
+                <h2>Create a History Story</h2>
+                <p>年代とジャンルを入力すると、ポーランドボールの国たちが歴史について語り合うストーリーが生成されます。</p>
+                <div style="display:flex; flex-direction:column; gap:16px; margin-top: 16px;">
+                    <md-outlined-text-field id="input-year" label="年代 (例: 1914年, 冷戦時代)" class="full-width">
+                        <md-icon slot="leading-icon"><span class="material-symbols-outlined">history_edu</span></md-icon>
+                    </md-outlined-text-field>
+                    <md-outlined-text-field id="input-genre" label="ジャンル (例: 政治, 経済, 戦争)" class="full-width">
+                        <md-icon slot="leading-icon"><span class="material-symbols-outlined">category</span></md-icon>
+                    </md-outlined-text-field>
+                </div>
+                <div class="flex-row-wrap" style="margin-top: 8px;">
+                    <md-filled-button onclick="window.generateStory()">ストーリーを生成<md-icon slot="icon"><span class="material-symbols-outlined">auto_awesome</span></md-icon></md-filled-button>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading-overlay" class="loading-overlay">
+                <md-circular-progress indeterminate></md-circular-progress>
+                <p>AIが歴史を編纂中...（国旗を取得しています）</p>
+            </div>
+
+            <!-- Story Display Container -->
+            <div id="story-container">
+                <!-- Chat rows will be generated here -->
+            </div>
+        </section>
+
+        <!-- HISTORY VIEW -->
+        <section id="view-history" class="view-section">
+            <div class="section-card" style="padding:0; overflow:hidden;">
+                <div style="padding:24px 24px 0 24px; display:flex; justify-content: space-between; align-items:center;">
+                    <div class="section-title" style="margin:0;">Saved Stories</div>
+                    <div>
+                        <md-icon-button onclick="window.backupHistory()" title="バックアップ(TXT)"><span class="material-symbols-outlined">download</span></md-icon-button>
+                        <md-icon-button onclick="document.getElementById('restore-file').click()" title="リストア(TXT)"><span class="material-symbols-outlined">upload</span></md-icon-button>
+                        <input type="file" id="restore-file" accept=".txt" onchange="window.restoreHistory(event)">
+                    </div>
+                </div>
+                <md-list id="history-list">
+                    <!-- History items will be populated here -->
+                </md-list>
+            </div>
+        </section>
+
+        <!-- SETTINGS VIEW -->
+        <section id="view-settings" class="view-section">
+            <div class="section-card">
+                <div class="section-title">API Settings</div>
+                <div style="display:flex; flex-direction:column; gap:20px;">
+                    <md-outlined-text-field id="input-apikey" label="Gemini API Key" placeholder="AI Studioのキーを入力" type="password" class="full-width">
+                        <md-icon slot="leading-icon"><span class="material-symbols-outlined">key</span></md-icon>
+                    </md-outlined-text-field>
+
+                    <md-outlined-text-field id="input-model" label="Gemini Model Name" value="gemini-3-flash" supporting-text="※生成不可のときは「gemini-2.5-flash」にしてみるのもおすすめです。" class="full-width">
+                        <md-icon slot="leading-icon"><span class="material-symbols-outlined">memory</span></md-icon>
+                    </md-outlined-text-field>
+                </div>
+                
+                <div class="section-title" style="margin-top: 32px;">Features</div>
+                <div class="m3-card elevated">
+                    <div class="m3-card-content" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight: 500; font-size: 1.1rem;">ポッドキャスト機能 (TTS)</div>
+                            <div style="font-size: 0.875rem; color: var(--md-sys-color-on-surface-variant);">生成時にストーリーを音声で読み上げます</div>
+                        </div>
+                        <md-switch id="switch-tts" icons></md-switch>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FAB -->
+    <div class="fab-container">
+        <md-fab variant="primary" label="New" onclick="window.switchTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' });">
+            <md-icon slot="icon"><span class="material-symbols-outlined">add</span></md-icon>
+        </md-fab>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="custom-nav">
+        <div class="nav-item active" id="nav-home" onclick="window.switchTab('home')">
+            <div class="nav-icon-container"><span class="material-symbols-outlined">chat</span></div>
+            <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" id="nav-history" onclick="window.switchTab('history')">
+            <div class="nav-icon-container"><span class="material-symbols-outlined">history</span></div>
+            <span class="nav-label">History</span>
+        </div>
+        <div class="nav-item" id="nav-settings" onclick="window.switchTab('settings')">
+            <div class="nav-icon-container"><span class="material-symbols-outlined">settings</span></div>
+            <span class="nav-label">Settings</span>
+        </div>
+    </nav>
+
+    <!-- Generic Message Dialog -->
+    <md-dialog id="message-dialog">
+        <div slot="headline" id="dialog-title"></div>
+        <div slot="content" id="dialog-content" style="white-space: pre-wrap;"></div>
+        <div slot="actions">
+            <md-text-button onclick="document.getElementById('message-dialog').close()">OK</md-text-button>
+        </div>
+    </md-dialog>
+
+    <script type="module">
+        import '@material/web/all.js';
+
+        // --- Theme Management ---
+        let isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        window.toggleDarkMode = function() {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            
+            const icon = document.getElementById('theme-icon');
+            if(icon) icon.textContent = isDarkMode ? 'light_mode' : 'dark_mode';
+        };
+
+        if(isDarkMode) document.body.setAttribute('data-theme', 'dark');
+
+        // --- Settings Management ---
+        const apiKeyInput = document.getElementById('input-apikey');
+        const modelInput = document.getElementById('input-model');
+        const ttsSwitch = document.getElementById('switch-tts');
+
+        // Load settings
+        apiKeyInput.value = localStorage.getItem('pb_apikey') || "";
+        modelInput.value = localStorage.getItem('pb_model') || "gemini-3-flash";
+        ttsSwitch.selected = localStorage.getItem('pb_tts') === 'true';
+
+        // Save settings on change
+        apiKeyInput.addEventListener('input', () => localStorage.setItem('pb_apikey', apiKeyInput.value));
+        modelInput.addEventListener('input', () => localStorage.setItem('pb_model', modelInput.value));
+        ttsSwitch.addEventListener('change', () => localStorage.setItem('pb_tts', ttsSwitch.selected));
+
+        // --- Navigation Logic ---
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            const targetView = document.getElementById('view-' + tabId);
+            if(targetView) targetView.classList.add('active');
+
+            const targetNav = document.getElementById('nav-' + tabId);
+            if(targetNav) targetNav.classList.add('active');
+            
+            if(tabId === 'history') loadHistoryList();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // --- Dialog Helpers ---
+        window.showMessage = function(title, message) {
+            document.getElementById('dialog-title').innerText = title;
+            document.getElementById('dialog-content').innerText = message;
+            document.getElementById('message-dialog').show();
+        };
+
+        window.showGoogleInfo = function() {
+            window.showMessage("About App", "ポーランドボール世界史学習WEBアプリ\n\n・Gemini APIを利用して歴史ストーリーを生成\n・Wikipedia APIで国旗を自動取得\n・Material 3準拠 (MWC使用)");
+        };
+
+        // --- Fetch with Exponential Backoff ---
+        async function fetchWithRetry(url, options, retries = 5) {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => null);
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errData?.error?.message || ''}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(res => setTimeout(res, delays[i]));
+                }
+            }
+        }
+
+        // --- Wikipedia Flag Fetcher ---
+        const flagCache = {};
+        async function getFlagUrl(countryName) {
+            if(!countryName) return null;
+            if(countryName.toLowerCase() === 'poland') return null; // Uses CSS
+            if(flagCache[countryName]) return flagCache[countryName];
+
+            try {
+                // Try "Flag of XXX" first
+                let url = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&titles=Flag_of_${encodeURIComponent(countryName)}&format=json&pithumbsize=300&origin=*`;
+                let res = await fetch(url);
+                let data = await res.json();
+                let pages = data.query.pages;
+                let pageId = Object.keys(pages)[0];
+                
+                if (pageId !== "-1" && pages[pageId].thumbnail) {
+                    flagCache[countryName] = pages[pageId].thumbnail.source;
+                    return flagCache[countryName];
+                }
+                
+                // Fallback to just country name
+                url = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&titles=${encodeURIComponent(countryName)}&format=json&pithumbsize=300&origin=*`;
+                res = await fetch(url);
+                data = await res.json();
+                pages = data.query.pages;
+                pageId = Object.keys(pages)[0];
+                
+                if (pageId !== "-1" && pages[pageId].thumbnail) {
+                    flagCache[countryName] = pages[pageId].thumbnail.source;
+                    return flagCache[countryName];
+                }
+            } catch(e) {
+                console.error("Flag fetch error for " + countryName, e);
+            }
+            return null;
+        }
+
+        // --- Podcast (TTS) Audio Helpers ---
+        let currentAudio = null;
+
+        function base64ToArrayBuffer(base64) {
+            const binary_string = window.atob(base64);
+            const len = binary_string.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+            const dataSize = pcmData.byteLength;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            const pcmView = new Uint8Array(pcmData);
+            new Uint8Array(buffer, 44).set(pcmView);
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function playPodcast(story) {
+            if(currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+
+            const apiKey = apiKeyInput.value.trim();
+            if(!apiKey) return;
+
+            let fullText = `${story.title}。`;
+            story.chats.forEach(chat => {
+                fullText += `${chat.countryNameInJapanese}。${chat.message}。`;
+            });
+
+            try {
+                // TTS Model is fixed to preview version for audio generation
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{ parts: [{ text: fullText }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Aoede" } } }
+                    }
+                };
+
+                const res = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+                
+                if(inlineData && inlineData.data) {
+                    const mimeType = inlineData.mimeType || "audio/L16;rate=24000";
+                    let sampleRate = 24000;
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    if (rateMatch) sampleRate = parseInt(rateMatch[1], 10);
+
+                    const pcmBuffer = base64ToArrayBuffer(inlineData.data);
+                    const wavBlob = pcmToWav(pcmBuffer, sampleRate);
+                    const wavUrl = URL.createObjectURL(wavBlob);
+                    
+                    currentAudio = new Audio(wavUrl);
+                    currentAudio.play();
+                }
+            } catch(e) {
+                console.error("TTS generation failed", e);
+            }
+        }
+
+        // --- Story Generation & Rendering ---
+        const schema = {
+            type: "OBJECT",
+            properties: {
+                title: { type: "STRING" },
+                chats: {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            country: { type: "STRING", description: "Official English country name (e.g. Japan, United States, Poland, Sierra Leone)" },
+                            countryNameInJapanese: { type: "STRING", description: "Country name translated to Japanese" },
+                            expression: { type: "STRING", description: "happy, angry, or normal" },
+                            message: { type: "STRING", description: "Dialogue string" }
+                        },
+                        required: ["country", "countryNameInJapanese", "expression", "message"]
+                    }
+                }
+            },
+            required: ["title", "chats"]
+        };
+
+        window.generateStory = async function() {
+            const year = document.getElementById('input-year').value.trim();
+            const genre = document.getElementById('input-genre').value.trim();
+            const apiKey = apiKeyInput.value.trim();
+            const modelName = modelInput.value.trim() || "gemini-3-flash";
+
+            if(!year || !genre) {
+                window.showMessage("入力エラー", "年代とジャンルを入力してください。");
+                return;
+            }
+            if(!apiKey) {
+                window.showMessage("API Keyエラー", "SettingsタブからGemini API Keyを設定してください。");
+                return;
+            }
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('story-container').innerHTML = '';
+            
+            if(currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+
+            const prompt = `あなたはポーランドボールの専門家であり歴史家です。指定された年代「${year}」とジャンル「${genre}」について、関連する国たちがチャット形式で歴史の話題を面白おかしく、少しブラックジョークを交えて語り合うストーリーを作成してください。
+出力はJSONスキーマに厳密に従ってください。countryフィールドは、国旗画像を取得するためにWikipediaの英語記事のタイトルとなるような正式な英語国名（例: Japan, United States, Soviet Union, France）にしてください。`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: "Respond in strictly formatted JSON." }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                }
+            };
+
+            try {
+                // Using the exact model name specified by the user from settings
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                const response = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if(!text) throw new Error("No text returned from API");
+                
+                const story = JSON.parse(text);
+                story.id = Date.now().toString();
+                story.timestamp = new Date().getTime();
+                
+                await renderStory(story);
+                saveToHistory(story);
+
+                if(ttsSwitch.selected) {
+                    playPodcast(story);
+                }
+
+            } catch(e) {
+                console.error(e);
+                window.showMessage("生成エラー", "API呼び出しに失敗しました。\nモデル名やAPIキーが正しいか確認してください。\n" + e.message);
+            } finally {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        };
+
+        async function renderStory(story, targetContainerId = 'story-container') {
+            const container = document.getElementById(targetContainerId);
+            container.innerHTML = `<h2 class="story-header">${story.title}</h2>`;
+            
+            let isReverse = false;
+
+            for(const chat of story.chats) {
+                const row = document.createElement('div');
+                row.className = `chat-row ${isReverse ? 'reverse' : ''}`;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'ball-wrapper';
+                
+                const ball = document.createElement('div');
+                ball.className = 'country-ball';
+                
+                if (chat.country.toLowerCase() === 'poland') {
+                    ball.classList.add('pb-poland');
+                } else {
+                    const flagUrl = await getFlagUrl(chat.country);
+                    if(flagUrl) {
+                        ball.style.backgroundImage = `url('${flagUrl}')`;
+                    } else {
+                        // Fallback background if API fails to find flag
+                        ball.style.backgroundColor = '#888';
+                        ball.style.border = '4px solid #444';
+                    }
+                }
+                
+                const eyes = document.createElement('div');
+                eyes.className = 'eyes-container';
+                eyes.innerHTML = `
+                    <div class="pb-eye ${chat.expression || 'normal'}"></div>
+                    <div class="pb-eye ${chat.expression || 'normal'}"></div>
+                `;
+                ball.appendChild(eyes);
+                
+                const nameLabel = document.createElement('div');
+                nameLabel.className = 'ball-name';
+                nameLabel.innerText = chat.countryNameInJapanese;
+                
+                wrapper.appendChild(ball);
+                wrapper.appendChild(nameLabel);
+                
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble';
+                bubble.innerText = chat.message;
+                
+                row.appendChild(wrapper);
+                row.appendChild(bubble);
+                container.appendChild(row);
+
+                isReverse = !isReverse; // Toggle alignment for chat feel
+            }
+        }
+
+        // --- History & Backup Logic ---
+        function saveToHistory(story) {
+            let history = JSON.parse(localStorage.getItem('pb_history') || '[]');
+            history.push(story);
+            localStorage.setItem('pb_history', JSON.stringify(history));
+            loadHistoryList();
+        }
+
+        window.deleteHistory = function(id) {
+            let history = JSON.parse(localStorage.getItem('pb_history') || '[]');
+            history = history.filter(s => s.id !== id);
+            localStorage.setItem('pb_history', JSON.stringify(history));
+            loadHistoryList();
+        };
+
+        window.viewSavedStory = async function(id) {
+            let history = JSON.parse(localStorage.getItem('pb_history') || '[]');
+            const story = history.find(s => s.id === id);
+            if(story) {
+                window.switchTab('home');
+                document.getElementById('story-container').innerHTML = '';
+                await renderStory(story);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
+        function loadHistoryList() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            const history = JSON.parse(localStorage.getItem('pb_history') || '[]');
+            
+            if(history.length === 0) {
+                list.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--md-sys-color-on-surface-variant);">保存された履歴はありません。</div>';
+                return;
+            }
+
+            // Reverse to show newest first
+            history.slice().reverse().forEach(story => {
+                const item = document.createElement('md-list-item');
+                item.type = "button";
+                
+                const dateStr = new Date(story.timestamp).toLocaleString();
+                
+                item.innerHTML = `
+                    <div slot="headline">${story.title}</div>
+                    <div slot="supporting-text">${dateStr}</div>
+                    <md-icon slot="start"><span class="material-symbols-outlined">auto_stories</span></md-icon>
+                    <md-icon-button slot="end" class="del-btn" title="削除"><span class="material-symbols-outlined">delete</span></md-icon-button>
+                `;
+                
+                item.addEventListener('click', (e) => {
+                    if(e.target.closest('.del-btn')) {
+                        e.stopPropagation();
+                        window.deleteHistory(story.id);
+                    } else {
+                        window.viewSavedStory(story.id);
+                    }
+                });
+                
+                list.appendChild(item);
+                const divider = document.createElement('md-divider');
+                list.appendChild(divider);
+            });
+        }
+
+        window.backupHistory = function() {
+            const history = localStorage.getItem('pb_history') || '[]';
+            const blob = new Blob([history], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'polandball_history_backup.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        window.restoreHistory = function(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(Array.isArray(data)) {
+                        localStorage.setItem('pb_history', JSON.stringify(data));
+                        loadHistoryList();
+                        window.showMessage('完了', '履歴をリストアしました。');
+                    } else {
+                        throw new Error("Invalid format");
+                    }
+                } catch(err) {
+                    window.showMessage('エラー', 'ファイルの読み込みに失敗しました。正しいバックアップファイルを選択してください。');
+                }
+            };
+            reader.readAsText(file);
+            // Reset input so the same file can be selected again
+            event.target.value = '';
+        };
+
+        // Initialize setup
+        document.addEventListener('DOMContentLoaded', () => {
+            // setup menu
+            const menu = document.getElementById('usage-menu');
+            const anchor = document.getElementById('usage-anchor');
+            anchor.addEventListener('click', () => {
+                menu.open = !menu.open;
+            });
+        });
+
+    </script>
+</body>
+</html>
