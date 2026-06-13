@@ -9,3 +9,5 @@ theme: []
 markdown: kramdown
 highlighter: rouge
 permalink: /:categories/:title+/
+include:
+  - manifest.json
