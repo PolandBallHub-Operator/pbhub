@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <title>PB Canvas</title>
+
+    <!-- Google Fonts & Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent-primary: #3381FF;
+            --accent-active: #1A5FCC;
+            
+            /* Light Mode Tokens */
+            --bg-base: #F7F7F7;
+            --glass-bg: #FFFFFF;
+            --text-main: #000000;
+            --text-sub: #555555;
+            --bg-secondary: #EEEEEE;
+            
+            --m3-easing: cubic-bezier(0.32, 0.72, 0, 1);
+            --transition-smooth: 0.4s var(--m3-easing);
+            --card-padding: 20px;
+        }
+
+        .dark-mode {
+            /* Dark Mode Tokens */
+            --bg-base: #000000;
+            --glass-bg: #1C1C1E;
+            --text-main: #FFFFFF;
+            --text-sub: #A1A1A6;
+            --bg-secondary: #2C2C2E;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            transition: background-color var(--transition-smooth), color var(--transition-smooth);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            touch-action: none;
+        }
+
+        /* --- Scroll Container --- */
+        #app-viewport {
+            height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        /* --- Header --- */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: 72px; padding: 0 24px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--glass-bg);
+            transition: background-color var(--transition-smooth);
+        }
+        .logo {
+            font-weight: 700; font-size: 20px; letter-spacing: -0.5px;
+            color: var(--text-main);
+            text-align: center;
+        }
+        .theme-toggle {
+            position: absolute; right: 24px;
+            width: 44px; height: 44px; border-radius: 22px;
+            border: none; background: var(--bg-secondary);
+            color: var(--text-main); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background var(--transition-smooth);
+        }
+
+        /* --- Main Layout --- */
+        main {
+            padding: 96px 20px 140px;
+            max-width: 800px; margin: 0 auto;
+            min-height: 100%;
+            transition: opacity 0.3s ease, transform 0.3s var(--m3-easing);
+            box-sizing: border-box;
+        }
+
+        /* --- Flat Solid Card (No Shadow, No Border) --- */
+        .glass-card {
+            background: var(--glass-bg);
+            border-radius: 24px;
+            padding: var(--card-padding);
+            margin-bottom: 16px;
+            box-shadow: none !important;
+            border: none !important;
+            transform-style: flat;
+            transition: background-color var(--transition-smooth);
+        }
+
+        h2 { 
+            font-size: 20px; 
+            margin-top: 0; 
+            margin-bottom: 8px;
+            font-weight: 700; 
+        }
+        p {
+            font-size: 14px;
+            line-height: 1.45;
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: var(--text-sub);
+        }
+
+        /* --- Interaction: Jelly/Squishy Effect --- */
+        @keyframes squishy {
+            0% { transform: scale(1, 1); }
+            30% { transform: scale(1.08, 0.92); }
+            50% { transform: scale(0.95, 1.05); }
+            70% { transform: scale(1.02, 0.98); }
+            100% { transform: scale(1, 1); }
+        }
+        .squish-active {
+            animation: squishy 0.4s var(--m3-easing);
+        }
+
+        /* --- Primary Buttons --- */
+        .ai-btn {
+            border: none; outline: none;
+            padding: 12px 24px; border-radius: 14px;
+            font-weight: 600; font-size: 15px;
+            color: white; cursor: pointer;
+            background: var(--accent-primary);
+            transition: transform 0.2s, background-color 0.2s;
+            display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: none;
+            justify-content: center;
+        }
+        .ai-btn:hover { transform: scale(1.02); }
+        .ai-btn:active {
+            background: var(--accent-active);
+            transform: scale(0.95);
+        }
+        .ai-btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-main);
+        }
+
+        /* --- Inputs --- */
+        .glass-input-wrapper { margin-bottom: 14px; }
+        .glass-input {
+            width: 100%; padding: 14px 18px;
+            border-radius: 14px; border: none;
+            background: var(--bg-secondary);
+            color: var(--text-main); font-size: 15px;
+            box-sizing: border-box; transition: background 0.3s var(--m3-easing);
+        }
+        .glass-input:focus {
+            outline: 2px solid var(--accent-primary);
+        }
+
+        /* --- Toggles --- */
+        .toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 0;
+        }
+        .switch {
+            position: relative; display: inline-block; width: 50px; height: 28px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-secondary);
+            transition: .3s var(--m3-easing);
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 20px; width: 20px; left: 4px; bottom: 4px;
+            background: white; transition: .3s var(--m3-easing);
+            border-radius: 50%;
+        }
+        input:checked + .slider { background: var(--accent-primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* --- Navigation --- */
+        .nav-container {
+            position: fixed; bottom: 32px; left: 50%;
+            transform: translateX(-50%); z-index: 500;
+        }
+        .nav-rail {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--glass-bg);
+            padding: 6px; border-radius: 32px;
+            box-shadow: none;
+        }
+        .nav-item {
+            width: 52px; height: 52px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border-radius: 26px; color: var(--text-sub);
+            transition: all 0.3s var(--m3-easing);
+            position: relative;
+        }
+        .nav-item.active {
+            background: var(--accent-primary); color: white;
+            transform: scale(1.05);
+        }
+
+        /* --- View Management --- */
+        .view { display: none; }
+        .view.active { display: block; animation: viewIn 0.4s var(--m3-easing); }
+        @keyframes viewIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Custom App Specific UI Components --- */
+        .color-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            display: inline-block;
+            cursor: pointer;
+            margin-right: 6px;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+        .color-dot.active {
+            border-color: var(--text-main);
+            transform: scale(1.1);
+        }
+        .color-dot:active {
+            transform: scale(0.85);
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 650px) { .grid { grid-template-columns: 1fr; } }
+
+        /* --- Dialog Overlay --- */
+        .dialog-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s var(--m3-easing);
+        }
+        .dialog-overlay.active { opacity: 1; visibility: visible; }
+        .glass-dialog {
+            background: var(--glass-bg);
+            border-radius: 28px;
+            padding: 24px; max-width: 440px; width: 90%; text-align: center;
+            transform: scale(0.9) translateY(20px); transition: all 0.4s var(--m3-easing);
+            box-sizing: border-box;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .dialog-overlay.active .glass-dialog { transform: scale(1) translateY(0); }
+
+        /* --- Toast Alert --- */
+        .toast {
+            position: fixed;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--text-main);
+            color: var(--glass-bg);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s var(--m3-easing);
+            z-index: 2000;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* --- Canvas Workspace Design (Without Gray Cards inside White Cards) --- */
+        .canvas-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #E5E5E5;
+            background-image: linear-gradient(45deg, #CCCCCC 25%, transparent 25%), 
+                              linear-gradient(-45deg, #CCCCCC 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #CCCCCC 75%), 
+                              linear-gradient(-45deg, transparent 75%, #CCCCCC 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .dark-mode .canvas-area {
+            background: #222222;
+            background-image: linear-gradient(45deg, #111 25%, transparent 25%), 
+                              linear-gradient(-45deg, #111 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #111 75%), 
+                              linear-gradient(-45deg, transparent 75%, #111 75%);
+            background-size: 20px 20px;
+        }
+
+        #canvas-transform-container {
+            position: absolute;
+            transform-origin: center center;
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        /* Stack layered canvases */
+        .drawing-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Interaction HUD overlays */
+        .workspace-hud {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .hud-btn {
+            background: var(--glass-bg);
+            border: none;
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.2s;
+        }
+        .hud-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Brush controller and Layers styles inside layout */
+        .property-slider {
+            width: 100%;
+            accent-color: var(--accent-primary);
+            margin: 8px 0;
+            cursor: pointer;
+        }
+
+        /* Layer Item List (flat design) */
+        .layer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .layer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-base); /* Avoid gray inner card in white card by using base background color */
+            border-radius: 12px;
+            transition: background 0.3s;
+        }
+        .layer-item.active {
+            outline: 2px solid var(--accent-primary);
+        }
+        .layer-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .layer-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .layer-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Gallery Layout */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .gallery-item {
+            background: var(--bg-base);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .gallery-item:hover {
+            transform: translateY(-2px);
+        }
+        .gallery-preview {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+            background: #DDD;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .gallery-title {
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        /* Tool groups */
+        .tool-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .tool-btn {
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .tool-btn.active {
+            background: var(--accent-primary);
+            color: #FFFFFF;
+        }
+
+        /* Custom brush indicator preview */
+        .brush-preview-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            transition: transform 0.1s;
+        }
+        .brush-preview-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">ShowMe Canvas</div>
+        <button class="theme-toggle" id="theme-btn">
+            <span class="material-symbols-outlined">light_mode</span>
+        </button>
+    </header>
+
+    <div id="app-viewport">
+        <main id="main-content">
+            
+            <!-- VIEW: HOME (Canvas Workspace) -->
+            <section id="view-home" class="view active">
+                <!-- Canvas Stage Area -->
+                <div class="glass-card" style="padding: 12px;">
+                    <div class="canvas-area" id="canvas-workspace">
+                        
+                        <!-- Transform Group for Pan & Pinch-Zoom -->
+                        <div id="canvas-transform-container">
+                            <!-- Dynamically generated layered canvases -->
+                        </div>
+
+                        <!-- HUD controls inside Canvas -->
+                        <div class="workspace-hud">
+                            <div style="display: flex; gap: 8px;">
+                                <button class="hud-btn" onclick="zoomCanvas(0.1)" title="拡大">
+                                    <span class="material-symbols-outlined">zoom_in</span>
+                                </button>
+                                <button class="hud-btn" onclick="zoomCanvas(-0.1)" title="縮小">
+                                    <span class="material-symbols-outlined">zoom_out</span>
+                                </button>
+                                <button class="hud-btn" onclick="resetCanvasTransform()" title="リセット">
+                                    <span class="material-symbols-outlined">restart_alt</span>
+                                </button>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="hud-btn" onclick="undo()" title="元に戻す">
+                                    <span class="material-symbols-outlined">undo</span>
+                                </button>
+                                <button class="hud-btn" onclick="redo()" title="やり直す">
+                                    <span class="material-symbols-outlined">redo</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Touch Instruction Badge -->
+                    <p style="font-size: 12px; color: var(--text-sub); text-align: center; margin: 0;">
+                        💡 1本指で描画・加筆 / 2本指でキャンバス移動・ズーム操作ダスよ！
+                    </p>
+                </div>
+
+                <!-- Drawing Tool Selector -->
+                <div class="glass-card">
+                    <div class="tool-bar">
+                        <button class="tool-btn active" id="tool-brush" onclick="setTool('brush')">
+                            <span class="material-symbols-outlined">brush</span>ブラシ
+                        </button>
+                        <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')">
+                            <span class="material-symbols-outlined">ink_eraser</span>消しゴム
+                        </button>
+                        <button class="tool-btn" id="tool-picker" onclick="setTool('picker')">
+                            <span class="material-symbols-outlined">colorize</span>スポイト
+                        </button>
+                    </div>
+
+                    <!-- Brush Sliders -->
+                    <div class="grid" style="margin-bottom: 12px;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+                                <span>太さ (<span id="brush-size-val">8</span>px)</span>
+                            </div>
+                            <input type="range" class="property-slider" id="brush-size" min="1" max="100" value="8" oninput="updateBrushSettings()">
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+                                <span>不透明度 (<span id="brush-opacity-val">100</span>%)</span>
+                            </div>
+                            <input type="range" class="property-slider" id="brush-opacity" min="1" max="100" value="100" oninput="updateBrushSettings()">
+                        </div>
+                    </div>
+
+                    <div class="grid" style="margin-bottom: 12px;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+                                <span>ぼかし強度 (<span id="brush-blur-val">0</span>px)</span>
+                            </div>
+                            <input type="range" class="property-slider" id="brush-blur" min="0" max="30" value="0" oninput="updateBrushSettings()">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 13px; font-weight: 600;">ブラシプレビュー:</span>
+                            <div class="brush-preview-container">
+                                <div id="brush-preview" class="brush-preview-circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Palette -->
+                <div class="glass-card">
+                    <h2>カラーパレット</h2>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+                        <span class="color-dot active" style="background: #000000;" onclick="selectColor('#000000', this)"></span>
+                        <span class="color-dot" style="background: #FFFFFF;" onclick="selectColor('#FFFFFF', this)"></span>
+                        <span class="color-dot" style="background: #E11D48;" onclick="selectColor('#E11D48', this)"></span>
+                        <span class="color-dot" style="background: #3381FF;" onclick="selectColor('#3381FF', this)"></span>
+                        <span class="color-dot" style="background: #10B981;" onclick="selectColor('#10B981', this)"></span>
+                        <span class="color-dot" style="background: #F59E0B;" onclick="selectColor('#F59E0B', this)"></span>
+                        <span class="color-dot" style="background: #8B5CF6;" onclick="selectColor('#8B5CF6', this)"></span>
+                        <span class="color-dot" style="background: #FF85FF;" onclick="selectColor('#FF85FF', this)"></span>
+                        
+                        <!-- Custom Color Picker Input with Material Icon -->
+                        <div style="position: relative; display: inline-flex; align-items: center; gap: 6px; margin-left: 10px;">
+                            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--text-sub);">palette</span>
+                            <input type="color" id="custom-color-picker" style="border: none; width: 36px; height: 36px; cursor: pointer; background: none; padding: 0;" onchange="customColorSelected(this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layer Manager -->
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h2>レイヤー管理</h2>
+                        <button class="ai-btn" style="padding: 6px 14px; font-size: 13px;" onclick="addLayer()">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>新規レイヤー
+                        </button>
+                    </div>
+                    <div class="layer-list" id="layer-container">
+                        <!-- Layers injected here -->
+                    </div>
+                </div>
+
+                <!-- Utility actions (Save, Insert Image) -->
+                <div class="glass-card">
+                    <h2>キャンバス設定 & 保存</h2>
+                    <div class="grid">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button class="ai-btn" onclick="openResizeDialog()">
+                                <span class="material-symbols-outlined">aspect_ratio</span>解像度サイズ変更
+                            </button>
+                            <button class="ai-btn" onclick="triggerImageUpload()">
+                                <span class="material-symbols-outlined">image_search</span>手持ち画像をロード
+                            </button>
+                            <input type="file" id="image-loader" accept="image/*" style="display: none;" onchange="loadImageFile(event)">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button class="ai-btn" onclick="loadPresetCharacter()">
+                                <span class="material-symbols-outlined">face</span>プリセットキャラ画像をロード
+                            </button>
+                            <button class="ai-btn" onclick="saveToGallery()">
+                                <span class="material-symbols-outlined">save_as</span>ギャラリーに保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: GALLERY -->
+            <section id="view-hub" class="view">
+                <div class="glass-card">
+                    <h2>作品ギャラリー (IndexedDB)</h2>
+                    <p>ブラウザ内部のデータベース(IndexedDB)に保存された高画質作品一覧です。クリックしてキャンバスにロード、またはデバイスに効率的にエクスポートできます。</p>
+                    
+                    <div style="display: flex; gap: 12px;">
+                        <button class="ai-btn" onclick="exportPNG()">
+                            <span class="material-symbols-outlined">download</span>PNG画像エクスポート
+                        </button>
+                        <button class="ai-btn ai-btn-secondary" onclick="clearGalleryData()">
+                            <span class="material-symbols-outlined">delete_sweep</span>全削除
+                        </button>
+                    </div>
+
+                    <div class="gallery-grid" id="db-gallery-list">
+                        <!-- IndexedDB items will render here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: SETTINGS -->
+            <section id="view-settings" class="view">
+                <div class="glass-card">
+                    <h2>描画環境設定</h2>
+                    <p>キャンバスの操作性とUI設定を最適化します。</p>
+                    
+                    <div class="toggle-row">
+                        <span>セマンティックダークモード</span>
+                        <label class="switch">
+                            <input type="checkbox" id="darkmode-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-row">
+                        <span>手ぶれ補正（スムーズ描画）</span>
+                        <label class="switch">
+                            <input type="checkbox" id="stabilizer-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-row">
+                        <span>オートセーブ（IndexedDB自動保存）</span>
+                        <label class="switch">
+                            <input type="checkbox" id="autosave-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h2>ShowMe Canvas エンジンについて</h2>
+                    <p style="font-size: 13px;">バージョン: v4.0.0-ShowMe</p>
+                    <p style="font-size: 13px;">独自のベクター補間描画処理、2点マルチタッチによる慣性付きトランスフォーム、およびレイヤーブレンドアルゴリズムを搭載したモバイル特化型ペイントアプリケーションです。</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <nav class="nav-rail">
+            <div class="nav-item active" data-view="view-home">
+                <span class="material-symbols-outlined">edit</span>
+            </div>
+            <div class="nav-item" data-view="view-hub" onclick="loadGallery()">
+                <span class="material-symbols-outlined">photo_library</span>
+            </div>
+            <div class="nav-item" data-view="view-settings">
+                <span class="material-symbols-outlined">settings</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Dialog Overlay: Size Resize -->
+    <div class="dialog-overlay" id="resize-dialog">
+        <div class="glass-dialog">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--accent-primary);">aspect_ratio</span>
+            <h2 style="margin-top: 12px;">キャンバスサイズ変更</h2>
+            <p>ご希望のピクセル解像度を選択または入力してください。変更すると現在の描画内容はリサイズされます。</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; margin: 18px 0; text-align: left;">
+                <div class="glass-input-wrapper">
+                    <label style="font-size: 12px; font-weight:600;">横幅 (px)</label>
+                    <input type="number" id="canvas-w-input" class="glass-input" value="1000">
+                </div>
+                <div class="glass-input-wrapper">
+                    <label style="font-size: 12px; font-weight:600;">縦幅 (px)</label>
+                    <input type="number" id="canvas-h-input" class="glass-input" value="1000">
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="ai-btn ai-btn-secondary" style="flex: 1;" onclick="applyPresetSize(800, 800)">800x800</button>
+                    <button class="ai-btn ai-btn-secondary" style="flex: 1;" onclick="applyPresetSize(1200, 1200)">1200x1200</button>
+                    <button class="ai-btn ai-btn-secondary" style="flex: 1;" onclick="applyPresetSize(1920, 1080)">FHD (1920x1080)</button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button class="ai-btn ai-btn-secondary" style="flex: 1;" onclick="closeResizeDialog()">キャンセル</button>
+                <button class="ai-btn" style="flex: 1;" onclick="applyCustomSize()">適用する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Message Box -->
+    <div class="toast" id="toast-message">メッセージをコピーしました</div>
+
+    <script>
+        /**
+         * ShowMe Canvas - Advanced Painting Engine
+         */
+
+        const viewport = document.getElementById('app-viewport');
+        const themeBtn = document.getElementById('theme-btn');
+        const themeIcon = themeBtn.querySelector('span');
+        const toast = document.getElementById('toast-message');
+
+        // State variables
+        let canvasWidth = 1000;
+        let canvasHeight = 1000;
+        let activeTool = 'brush'; // brush, eraser, picker
+        let brushColor = '#000000';
+        let brushSize = 8;
+        let brushOpacity = 1.0;
+        let brushBlur = 0;
+        let stabilizerEnabled = true;
+
+        // Viewport Transform State (Panning and Pinch Zoom)
+        let zoom = 1.0;
+        let panX = 0;
+        let panY = 0;
+
+        // Multitouch gesture handling state
+        let isPanningGesture = false;
+        let startTouches = [];
+        let startPanX = 0;
+        let startPanY = 0;
+        let startZoom = 1.0;
+        let startDistance = 0;
+
+        // Layer Management
+        let layers = [];
+        let activeLayerId = null;
+        let layerCounter = 0;
+
+        // Undo/Redo Stacks (Contains layer snapshots)
+        let undoStack = [];
+        let redoStack = [];
+        const MAX_HISTORY = 20;
+
+        // Draw variables
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let points = []; // stabilizer points
+
+        // IndexedDB database reference
+        let db = null;
+
+        // --- 1. IndexedDB Initialization ---
+        function initIndexedDB() {
+            const request = indexedDB.open("ShowMeCanvasDB", 1);
+            request.onupgradeneeded = function(e) {
+                const dbInstance = e.target.result;
+                if (!dbInstance.objectStoreNames.contains("artworks")) {
+                    dbInstance.createObjectStore("artworks", { keyPath: "id", autoIncrement: true });
+                }
+            };
+            request.onsuccess = function(e) {
+                db = e.target.result;
+                console.log("IndexedDB Initialized.");
+                loadGallery();
+            };
+            request.onerror = function(e) {
+                console.error("IndexedDB Error:", e);
+            };
+        }
+
+        // --- 2. Canvas Setup and Initializing Layers ---
+        function initCanvas() {
+            const container = document.getElementById('canvas-transform-container');
+            container.innerHTML = '';
+            layers = [];
+            layerCounter = 0;
+
+            // Update bounds representation
+            container.style.width = canvasWidth + 'px';
+            container.style.height = canvasHeight + 'px';
+
+            // Add starting background layer (white filled) & normal drawing layer
+            const bgLayer = addLayerRaw("背景レイヤー", true);
+            const ctx = bgLayer.canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            addLayerRaw("描画レイヤー", false);
+            selectLayer(layers[1].id);
+
+            resetCanvasTransform();
+            saveHistory();
+        }
+
+        function createHighDPICanvas(w, h) {
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            canvas.classList.add('drawing-canvas');
+            return canvas;
+        }
+
+        function addLayer() {
+            const l = addLayerRaw(`レイヤー ${layerCounter + 1}`, false);
+            selectLayer(l.id);
+            saveHistory();
+            showToast("新しいレイヤーを追加しました");
+        }
+
+        function addLayerRaw(name, isBg = false) {
+            layerCounter++;
+            const layerId = `layer-${Date.now()}-${layerCounter}`;
+            const canvas = createHighDPICanvas(canvasWidth, canvasHeight);
+
+            const layerObj = {
+                id: layerId,
+                name: name,
+                canvas: canvas,
+                visible: true,
+                opacity: 1.0,
+                isBg: isBg
+            };
+
+            layers.push(layerObj);
+
+            // Insert Canvas to the transformation container
+            const container = document.getElementById('canvas-transform-container');
+            container.appendChild(canvas);
+
+            renderLayersList();
+            return layerObj;
+        }
+
+        function renderLayersList() {
+            const container = document.getElementById('layer-container');
+            container.innerHTML = '';
+
+            // Render from top layer to bottom layer (reverse list)
+            for (let i = layers.length - 1; i >= 0; i--) {
+                const layer = layers[i];
+                const isActive = layer.id === activeLayerId;
+
+                const item = document.createElement('div');
+                item.className = `layer-item ${isActive ? 'active' : ''}`;
+                item.onclick = (e) => {
+                    if (e.target.closest('.layer-actions')) return;
+                    selectLayer(layer.id);
+                };
+
+                // Opacity value multiplier
+                const opacityPercent = Math.round(layer.opacity * 100);
+
+                item.innerHTML = `
+                    <div class="layer-item-info">
+                        <span class="material-symbols-outlined" style="color: ${isActive ? 'var(--accent-primary)' : 'var(--text-sub)'};">
+                            ${layer.isBg ? 'texture' : 'layers'}
+                        </span>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">${layer.name}</div>
+                            <div style="font-size: 11px; color: var(--text-sub);">不透明度: ${opacityPercent}%</div>
+                        </div>
+                    </div>
+                    <div class="layer-actions">
+                        <button class="layer-btn" onclick="toggleLayerVisibility('${layer.id}')" title="表示/非表示">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">
+                                ${layer.visible ? 'visibility' : 'visibility_off'}
+                            </span>
+                        </button>
+                        <button class="layer-btn" onclick="changeLayerOpacity('${layer.id}')" title="不透明度変更">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">opacity</span>
+                        </button>
+                        ${!layer.isBg ? `
+                            <button class="layer-btn" onclick="moveLayerUp('${layer.id}')" title="上へ移動">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">arrow_upward</span>
+                            </button>
+                            <button class="layer-btn" onclick="moveLayerDown('${layer.id}')" title="下へ移動">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">arrow_downward</span>
+                            </button>
+                            <button class="layer-btn" onclick="deleteLayer('${layer.id}')" title="削除">
+                                <span class="material-symbols-outlined" style="font-size: 20px; color: #E11D48;">delete</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+
+                container.appendChild(item);
+            }
+        }
+
+        function selectLayer(id) {
+            activeLayerId = id;
+            renderLayersList();
+        }
+
+        function toggleLayerVisibility(id) {
+            const layer = layers.find(l => l.id === id);
+            if (layer) {
+                layer.visible = !layer.visible;
+                layer.canvas.style.display = layer.visible ? 'block' : 'none';
+                renderLayersList();
+            }
+        }
+
+        function changeLayerOpacity(id) {
+            const layer = layers.find(l => l.id === id);
+            if (layer) {
+                let current = layer.opacity * 10;
+                let next = (current - 2);
+                if (next < 1) next = 10;
+                layer.opacity = next / 10;
+                layer.canvas.style.opacity = layer.opacity;
+                renderLayersList();
+                saveHistory();
+            }
+        }
+
+        function deleteLayer(id) {
+            if (layers.filter(l => !l.isBg).length <= 1) {
+                showToast("描画レイヤーは最低1つ必要です");
+                return;
+            }
+            const idx = layers.findIndex(l => l.id === id);
+            if (idx !== -1) {
+                const layer = layers[idx];
+                layer.canvas.remove();
+                layers.splice(idx, 1);
+                
+                if (activeLayerId === id) {
+                    // Find alternative non-bg layer
+                    const remaining = layers.filter(l => !l.isBg);
+                    activeLayerId = remaining[remaining.length - 1].id;
+                }
+                
+                renderLayersList();
+                saveHistory();
+                showToast("レイヤーを削除しました");
+            }
+        }
+
+        function moveLayerUp(id) {
+            const idx = layers.findIndex(l => l.id === id);
+            if (idx < layers.length - 1) {
+                // Swap state
+                const temp = layers[idx];
+                layers[idx] = layers[idx + 1];
+                layers[idx + 1] = temp;
+                
+                reorderDomCanvases();
+                renderLayersList();
+                saveHistory();
+            }
+        }
+
+        function moveLayerDown(id) {
+            const idx = layers.findIndex(l => l.id === id);
+            if (idx > 0 && !layers[idx - 1].isBg) {
+                // Swap state
+                const temp = layers[idx];
+                layers[idx] = layers[idx - 1];
+                layers[idx - 1] = temp;
+                
+                reorderDomCanvases();
+                renderLayersList();
+                saveHistory();
+            }
+        }
+
+        function reorderDomCanvases() {
+            const container = document.getElementById('canvas-transform-container');
+            // Re-append canvases based on current order
+            layers.forEach(l => {
+                container.appendChild(l.canvas);
+            });
+        }
+
+        // --- 3. Viewport Transform (Pan & Zoom) ---
+        function updateTransform() {
+            const container = document.getElementById('canvas-transform-container');
+            container.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+        }
+
+        function zoomCanvas(amount) {
+            zoom = Math.max(0.15, Math.min(6.0, zoom + amount));
+            updateTransform();
+        }
+
+        function resetCanvasTransform() {
+            const area = document.getElementById('canvas-workspace');
+            const areaRect = area.getBoundingClientRect();
+            
+            // Center calculation
+            zoom = Math.min(areaRect.width / canvasWidth, areaRect.height / canvasHeight) * 0.9;
+            panX = (areaRect.width - canvasWidth * zoom) / 2;
+            panY = (areaRect.height - canvasHeight * zoom) / 2;
+
+            // Workaround offset from translation scaling
+            panX = panX - (canvasWidth / 2) * (1 - zoom);
+            panY = panY - (canvasHeight / 2) * (1 - zoom);
+
+            // Correct coordinate transform formula positioning
+            panX = 0;
+            panY = 0;
+            zoom = 0.35; // optimal fallback view scale
+
+            const container = document.getElementById('canvas-transform-container');
+            container.style.left = '50%';
+            container.style.top = '50%';
+            container.style.marginLeft = -canvasWidth/2 + 'px';
+            container.style.marginTop = -canvasHeight/2 + 'px';
+
+            updateTransform();
+        }
+
+        // --- 4. Touch & Pen Event Handlers (Supports Multi-touch for pan/zoom) ---
+        const workspace = document.getElementById('canvas-workspace');
+
+        // Convert page coordinates to local canvas coordinates
+        function getCanvasCoords(clientX, clientY) {
+            const container = document.getElementById('canvas-transform-container');
+            const rect = container.getBoundingClientRect();
+            
+            // Translate based on current scale and bounding rect
+            const x = (clientX - rect.left) * (canvasWidth / rect.width);
+            const y = (clientY - rect.top) * (canvasHeight / rect.height);
+            return { x, y };
+        }
+
+        // Mouse & Pointer fallback drawing
+        workspace.addEventListener('pointerdown', function(e) {
+            // If right click or multi-touch triggered by touch, bypass
+            if (e.pointerType === 'touch') return; 
+
+            const coords = getCanvasCoords(e.clientX, e.clientY);
+            startDrawing(coords.x, coords.y);
+        });
+
+        window.addEventListener('pointermove', function(e) {
+            if (e.pointerType === 'touch') return;
+            if (!isDrawing) return;
+
+            const coords = getCanvasCoords(e.clientX, e.clientY);
+            drawMove(coords.x, coords.y);
+        });
+
+        window.addEventListener('pointerup', function(e) {
+            if (e.pointerType === 'touch') return;
+            stopDrawing();
+        });
+
+        // Touch Interaction Protocols
+        workspace.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            
+            if (e.touches.length === 1) {
+                // Start drawing mode
+                isPanningGesture = false;
+                const touch = e.touches[0];
+                const coords = getCanvasCoords(touch.clientX, touch.clientY);
+                startDrawing(coords.x, coords.y);
+            } else if (e.touches.length === 2) {
+                // Initialize Panning/Zooming state
+                isPanningGesture = true;
+                stopDrawing(); // Cancel drawing if ongoing
+
+                startTouches = [
+                    { x: e.touches[0].clientX, y: e.touches[0].clientY },
+                    { x: e.touches[1].clientX, y: e.touches[1].clientY }
+                ];
+                startPanX = panX;
+                startPanY = panY;
+                startZoom = zoom;
+                startDistance = getDistance(startTouches[0], startTouches[1]);
+            }
+        }, { passive: false });
+
+        workspace.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+
+            if (e.touches.length === 1 && !isPanningGesture) {
+                const touch = e.touches[0];
+                const coords = getCanvasCoords(touch.clientX, touch.clientY);
+                drawMove(coords.x, coords.y);
+            } else if (e.touches.length === 2 && isPanningGesture) {
+                const currentTouches = [
+                    { x: e.touches[0].clientX, y: e.touches[0].clientY },
+                    { x: e.touches[1].clientX, y: e.touches[1].clientY }
+                ];
+
+                // Calculate pinch distance
+                const currentDistance = getDistance(currentTouches[0], currentTouches[1]);
+                if (startDistance > 0 && currentDistance > 0) {
+                    const factor = currentDistance / startDistance;
+                    zoom = Math.max(0.15, Math.min(6.0, startZoom * factor));
+                }
+
+                // Calculate midpoint shift
+                const startMid = getMidpoint(startTouches[0], startTouches[1]);
+                const currentMid = getMidpoint(currentTouches[0], currentTouches[1]);
+                
+                panX = startPanX + (currentMid.x - startMid.x);
+                panY = startPanY + (currentMid.y - startMid.y);
+
+                updateTransform();
+            }
+        }, { passive: false });
+
+        workspace.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            if (e.touches.length === 0) {
+                isPanningGesture = false;
+                stopDrawing();
+            } else if (e.touches.length === 1) {
+                // If fell back to 1 finger, prepare for future gesture
+                isPanningGesture = false;
+                const touch = e.touches[0];
+                const coords = getCanvasCoords(touch.clientX, touch.clientY);
+                lastX = coords.x;
+                lastY = coords.y;
+            }
+        }, { passive: false });
+
+        function getDistance(p1, p2) {
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function getMidpoint(p1, p2) {
+            return {
+                x: (p1.x + p2.x) / 2,
+                y: (p1.y + p2.y) / 2
+            };
+        }
+
+        // --- 5. Custom Drawing Engine with Stabilizer Option ---
+        function startDrawing(x, y) {
+            if (activeTool === 'picker') {
+                pickColorAt(x, y);
+                return;
+            }
+
+            const activeLayer = layers.find(l => l.id === activeLayerId);
+            if (!activeLayer || !activeLayer.visible) {
+                showToast("非表示のレイヤーには描画できません");
+                return;
+            }
+
+            isDrawing = true;
+            lastX = x;
+            lastY = y;
+            points = [{ x, y }];
+        }
+
+        function drawMove(x, y) {
+            if (!isDrawing) return;
+
+            const activeLayer = layers.find(l => l.id === activeLayerId);
+            if (!activeLayer) return;
+
+            const ctx = activeLayer.canvas.getContext('2d');
+            
+            // Set drawing style rules
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            if (activeTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0,0,0,1.0)';
+                ctx.filter = 'none';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = brushColor;
+                if (brushBlur > 0) {
+                    ctx.filter = `blur(${brushBlur}px)`;
+                } else {
+                    ctx.filter = 'none';
+                }
+            }
+
+            ctx.lineWidth = brushSize;
+            ctx.globalAlpha = brushOpacity;
+
+            if (stabilizerEnabled) {
+                // Stabilized draw using average smoothing vector
+                points.push({ x, y });
+                if (points.length > 4) {
+                    points.shift();
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                
+                // Quadratic curve plotting
+                for (let i = 1; i < points.length - 1; i++) {
+                    const xc = (points[i].x + points[i + 1].x) / 2;
+                    const yc = (points[i].y + points[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+                }
+                ctx.stroke();
+            } else {
+                // Normal direct vector drawing
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                saveHistory();
+
+                // Check for Auto-save integration
+                if (document.getElementById('autosave-toggle').checked) {
+                    autoSaveToGallery();
+                }
+            }
+        }
+
+        // Eyedropper implementation
+        function pickColorAt(x, y) {
+            if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) return;
+
+            // Composite layers off-screen temporarily to read exact display pixel
+            const compCanvas = document.createElement('canvas');
+            compCanvas.width = canvasWidth;
+            compCanvas.height = canvasHeight;
+            const compCtx = compCanvas.getContext('2d');
+
+            layers.forEach(l => {
+                if (l.visible) {
+                    compCtx.globalAlpha = l.opacity;
+                    compCtx.drawImage(l.canvas, 0, 0);
+                }
+            });
+
+            try {
+                const imgData = compCtx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+                const r = imgData[0];
+                const g = imgData[1];
+                const b = imgData[2];
+                
+                // RGB to HEX conversion
+                const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+                
+                // Select and apply color
+                brushColor = hex;
+                document.getElementById('custom-color-picker').value = hex;
+                
+                // Highlight color in UI
+                const dots = document.querySelectorAll('.color-dot');
+                dots.forEach(d => d.classList.remove('active'));
+
+                updateBrushSettings();
+                showToast(`色を取得しました: ${hex}`);
+                setTool('brush'); // return to paint
+            } catch (err) {
+                console.error("Color pick error: ", err);
+            }
+        }
+
+        // --- 6. Tool and Preset State Controls ---
+        function setTool(tool) {
+            activeTool = tool;
+            
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tool-${tool}`).classList.add('active');
+
+            if (tool === 'picker') {
+                showToast("キャンバスをタップして色を抽出します");
+            }
+        }
+
+        function selectColor(color, element) {
+            brushColor = color;
+            document.getElementById('custom-color-picker').value = color;
+
+            document.querySelectorAll('.color-dot').forEach(dot => dot.classList.remove('active'));
+            element.classList.add('active');
+
+            // Return to brush tool if eraser or colorpicker was active
+            if (activeTool !== 'brush') {
+                setTool('brush');
+            }
+            updateBrushSettings();
+        }
+
+        function customColorSelected(color) {
+            brushColor = color;
+            document.querySelectorAll('.color-dot').forEach(dot => dot.classList.remove('active'));
+            
+            if (activeTool !== 'brush') {
+                setTool('brush');
+            }
+            updateBrushSettings();
+        }
+
+        function updateBrushSettings() {
+            brushSize = parseInt(document.getElementById('brush-size').value);
+            brushOpacity = parseInt(document.getElementById('brush-opacity').value) / 100;
+            brushBlur = parseInt(document.getElementById('brush-blur').value);
+
+            document.getElementById('brush-size-val').textContent = brushSize;
+            document.getElementById('brush-opacity-val').textContent = Math.round(brushOpacity * 100);
+            document.getElementById('brush-blur-val').textContent = brushBlur;
+
+            // Render style updates on indicators
+            const preview = document.getElementById('brush-preview');
+            preview.style.backgroundColor = brushColor;
+            preview.style.transform = `scale(${Math.max(0.2, Math.min(2.5, brushSize / 25))})`;
+            preview.style.opacity = brushOpacity;
+        }
+
+        // --- 7. History Engine (Undo / Redo Canvas Snapshots) ---
+        function saveHistory() {
+            // Compile snapshots of each canvas
+            const snapshots = layers.map(l => {
+                const snapshotCanvas = document.createElement('canvas');
+                snapshotCanvas.width = canvasWidth;
+                snapshotCanvas.height = canvasHeight;
+                snapshotCanvas.getContext('2d').drawImage(l.canvas, 0, 0);
+                
+                return {
+                    id: l.id,
+                    name: l.name,
+                    visible: l.visible,
+                    opacity: l.opacity,
+                    isBg: l.isBg,
+                    snapshot: snapshotCanvas
+                };
+            });
+
+            undoStack.push(snapshots);
+            if (undoStack.length > MAX_HISTORY) {
+                undoStack.shift();
+            }
+            // Clear future redos
+            redoStack = [];
+        }
+
+        function undo() {
+            if (undoStack.length <= 1) {
+                showToast("これ以上元に戻せません");
+                return;
+            }
+
+            // Move current state to redo stack
+            const current = undoStack.pop();
+            redoStack.push(current);
+
+            // Fetch previous history
+            const targetSnapshots = undoStack[undoStack.length - 1];
+            restoreFromSnapshots(targetSnapshots);
+            showToast("元に戻しました");
+        }
+
+        function redo() {
+            if (redoStack.length === 0) {
+                showToast("やり直す履歴がありません");
+                return;
+            }
+
+            const targetSnapshots = redoStack.pop();
+            undoStack.push(targetSnapshots);
+
+            restoreFromSnapshots(targetSnapshots);
+            showToast("やり直しました");
+        }
+
+        function restoreFromSnapshots(snapshots) {
+            // Purge existing DOM canvases
+            layers.forEach(l => l.canvas.remove());
+            layers = [];
+
+            const container = document.getElementById('canvas-transform-container');
+
+            snapshots.forEach(s => {
+                const canvas = createHighDPICanvas(canvasWidth, canvasHeight);
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(s.snapshot, 0, 0);
+
+                const layerObj = {
+                    id: s.id,
+                    name: s.name,
+                    canvas: canvas,
+                    visible: s.visible,
+                    opacity: s.opacity,
+                    isBg: s.isBg
+                };
+
+                // Restore vis & styling properties
+                canvas.style.display = s.visible ? 'block' : 'none';
+                canvas.style.opacity = s.opacity;
+
+                layers.push(layerObj);
+                container.appendChild(canvas);
+            });
+
+            // Maintain current select pointer sanity
+            if (!layers.find(l => l.id === activeLayerId)) {
+                activeLayerId = layers[layers.length - 1].id;
+            }
+
+            renderLayersList();
+        }
+
+        // --- 8. Loader & Exporter Utils ---
+        function triggerImageUpload() {
+            document.getElementById('image-loader').click();
+        }
+
+        function loadImageFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Inject this image onto a newly instantiated target layer
+                    const newL = addLayerRaw("読み込み画像", false);
+                    const ctx = newL.canvas.getContext('2d');
+
+                    // Draw image centered while keeping aspect ratios
+                    const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height);
+                    const x = (canvasWidth - img.width * scale) / 2;
+                    const y = (canvasHeight - img.height * scale) / 2;
+                    
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                    
+                    selectLayer(newL.id);
+                    saveHistory();
+                    showToast("画像をレイヤーにロードしました");
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Character load protocol with fallback support
+        function loadPresetCharacter() {
+            const url = "https://raw.githubusercontent.com/PolandBallHub-Operator/pbimagesPublic/refs/heads/main/pbhuB2/de2.png";
+            showToast("キャラクター読み込み中...");
+
+            const img = new Image();
+            img.crossOrigin = "anonymous"; // Bypass potential CORS
+            img.onload = function() {
+                const newL = addLayerRaw("キャラレイヤー", false);
+                const ctx = newL.canvas.getContext('2d');
+
+                const scale = Math.min((canvasWidth * 0.8) / img.width, (canvasHeight * 0.8) / img.height);
+                const x = (canvasWidth - img.width * scale) / 2;
+                const y = (canvasHeight - img.height * scale) / 2;
+
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                
+                selectLayer(newL.id);
+                saveHistory();
+                showToast("キャラをロードしました！");
+            };
+            img.onerror = function() {
+                showToast("キャラ画像の読み込みに失敗しました。CORS保護または回線を確認してください。");
+            };
+            img.src = url;
+        }
+
+        // Merge layered structures and composite into a singular flat data URI string
+        function getCompositedImageData() {
+            const compCanvas = document.createElement('canvas');
+            compCanvas.width = canvasWidth;
+            compCanvas.height = canvasHeight;
+            const compCtx = compCanvas.getContext('2d');
+
+            layers.forEach(l => {
+                if (l.visible) {
+                    compCtx.globalAlpha = l.opacity;
+                    compCtx.drawImage(l.canvas, 0, 0);
+                }
+            });
+
+            return compCanvas.toDataURL("image/png");
+        }
+
+        function exportPNG() {
+            const dataUrl = getCompositedImageData();
+            const link = document.createElement('a');
+            link.download = `ShowMeCanvas_${Date.now()}.png`;
+            link.href = dataUrl;
+            link.click();
+            showToast("デバイスにPNG画像を保存しました");
+        }
+
+        // --- 9. IndexedDB Operations (Gallery Sync) ---
+        function saveToGallery() {
+            if (!db) {
+                showToast("DBが未初期化です。");
+                return;
+            }
+
+            const dataUrl = getCompositedImageData();
+            const artwork = {
+                title: `作品_${new Date().toLocaleString()}`,
+                image: dataUrl,
+                timestamp: Date.now()
+            };
+
+            const transaction = db.transaction(["artworks"], "readwrite");
+            const store = transaction.objectStore("artworks");
+            const request = store.add(artwork);
+
+            request.onsuccess = function() {
+                showToast("ギャラリー(DB)へ作品を登録しました！");
+                loadGallery();
+            };
+            request.onerror = function() {
+                showToast("保存エラーが発生しました");
+            };
+        }
+
+        function autoSaveToGallery() {
+            if (!db) return;
+
+            // Autosave matches slot #0 or replaces specific dynamic autosave slot
+            const dataUrl = getCompositedImageData();
+            const artwork = {
+                id: 10000, // Fixed slot key representing auto-saved working draft
+                title: `自動保存データ (自動更新)`,
+                image: dataUrl,
+                timestamp: Date.now()
+            };
+
+            const transaction = db.transaction(["artworks"], "readwrite");
+            const store = transaction.objectStore("artworks");
+            store.put(artwork);
+        }
+
+        function loadGallery() {
+            if (!db) return;
+
+            const container = document.getElementById('db-gallery-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const transaction = db.transaction(["artworks"], "readonly");
+            const store = transaction.objectStore("artworks");
+            const request = store.getAll();
+
+            request.onsuccess = function(e) {
+                const items = e.target.result;
+                if (items.length === 0) {
+                    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; font-size:13px; color: var(--text-sub); padding: 30px;">
+                        ギャラリーは空です。「保存」をタップして今の作品を追加してみましょう。
+                    </div>`;
+                    return;
+                }
+
+                // Render latest art at front
+                items.reverse().forEach(art => {
+                    const el = document.createElement('div');
+                    el.className = 'gallery-item';
+                    el.onclick = () => loadSelectedArtToCanvas(art.image);
+
+                    el.innerHTML = `
+                        <img src="${art.image}" class="gallery-preview" alt="Artwork Preview">
+                        <div class="gallery-title">${art.title}</div>
+                        <button class="ai-btn" style="padding: 6px 12px; font-size:11px; width: 100%;" onclick="deleteArtFromDB(${art.id}, event)">
+                            削除
+                        </button>
+                    `;
+                    container.appendChild(el);
+                });
+            };
+        }
+
+        function deleteArtFromDB(id, event) {
+            event.stopPropagation();
+            if (!db) return;
+
+            const transaction = db.transaction(["artworks"], "readwrite");
+            const store = transaction.objectStore("artworks");
+            store.delete(id);
+
+            transaction.oncomplete = function() {
+                showToast("作品を削除しました");
+                loadGallery();
+            };
+        }
+
+        function clearGalleryData() {
+            if (!db) return;
+            if (!confirm("本当にギャラリー内の全作品データを消去しますか？")) return;
+
+            const transaction = db.transaction(["artworks"], "readwrite");
+            const store = transaction.objectStore("artworks");
+            store.clear();
+
+            transaction.oncomplete = function() {
+                showToast("ギャラリーを空にしました");
+                loadGallery();
+            };
+        }
+
+        function loadSelectedArtToCanvas(dataUrl) {
+            const img = new Image();
+            img.onload = function() {
+                // Resize base to match loaded art dimensions
+                canvasWidth = img.width;
+                canvasHeight = img.height;
+
+                document.getElementById('canvas-w-input').value = canvasWidth;
+                document.getElementById('canvas-h-input').value = canvasHeight;
+
+                const container = document.getElementById('canvas-transform-container');
+                container.innerHTML = '';
+                layers = [];
+                layerCounter = 0;
+
+                container.style.width = canvasWidth + 'px';
+                container.style.height = canvasHeight + 'px';
+
+                // Setup layer and inject loaded flattened artwork
+                const targetL = addLayerRaw("復元データ", false);
+                const ctx = targetL.canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                selectLayer(targetL.id);
+                resetCanvasTransform();
+                saveHistory();
+
+                switchView('view-home');
+                showToast("選択した作品をエディタへ再ロードしました！");
+            };
+            img.src = dataUrl;
+        }
+
+        // --- 10. Resizer Modals & Handlers ---
+        function openResizeDialog() {
+            document.getElementById('canvas-w-input').value = canvasWidth;
+            document.getElementById('canvas-h-input').value = canvasHeight;
+            document.getElementById('resize-dialog').classList.add('active');
+        }
+
+        function closeResizeDialog() {
+            document.getElementById('resize-dialog').classList.remove('active');
+        }
+
+        function applyPresetSize(w, h) {
+            document.getElementById('canvas-w-input').value = w;
+            document.getElementById('canvas-h-input').value = h;
+        }
+
+        function applyCustomSize() {
+            const w = parseInt(document.getElementById('canvas-w-input').value);
+            const h = parseInt(document.getElementById('canvas-h-input').value);
+
+            if (isNaN(w) || w <= 0 || isNaN(h) || h <= 0) {
+                showToast("不正な解像度数値です");
+                return;
+            }
+
+            // Snapshot old rendering content to draw back
+            const originalDataUrl = getCompositedImageData();
+
+            canvasWidth = w;
+            canvasHeight = h;
+
+            closeResizeDialog();
+            
+            // Re-setup layer configurations with new boundaries
+            const container = document.getElementById('canvas-transform-container');
+            container.innerHTML = '';
+            layers = [];
+            layerCounter = 0;
+
+            container.style.width = canvasWidth + 'px';
+            container.style.height = canvasHeight + 'px';
+
+            const bgL = addLayerRaw("背景レイヤー", true);
+            const bgCtx = bgL.canvas.getContext('2d');
+            bgCtx.fillStyle = '#FFFFFF';
+            bgCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            const drawL = addLayerRaw("描画レイヤー", false);
+            const drawCtx = drawL.canvas.getContext('2d');
+
+            // Draw original layer inside with proper fitting
+            const img = new Image();
+            img.onload = function() {
+                drawCtx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+                selectLayer(drawL.id);
+                resetCanvasTransform();
+                saveHistory();
+                showToast(`サイズを ${canvasWidth}x${canvasHeight} にリサイズしました`);
+            };
+            img.src = originalDataUrl;
+        }
+
+        // --- 11. Generic Toast Alert Logic ---
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('active');
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 2500);
+        }
+
+        // --- 12. View Navigation Engine ---
+        const navItems = document.querySelectorAll('.nav-item');
+        const views = document.querySelectorAll('.view');
+
+        function switchView(viewId) {
+            navItems.forEach(n => {
+                n.classList.remove('active');
+                if (n.getAttribute('data-view') === viewId) {
+                    n.classList.add('active');
+                }
+            });
+
+            views.forEach(v => {
+                v.classList.remove('active');
+                if (v.id === viewId) {
+                    v.classList.add('active');
+                    viewport.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const viewId = item.getAttribute('data-view');
+                switchView(viewId);
+            });
+        });
+
+        // --- 13. System Themes (Dark / Light) ---
+        function setTheme(isDark) {
+            document.body.classList.toggle('dark-mode', isDark);
+            themeIcon.textContent = isDark ? 'dark_mode' : 'light_mode';
+            
+            const dmToggle = document.getElementById('darkmode-toggle');
+            if (dmToggle) {
+                dmToggle.checked = isDark;
+            }
+        }
+
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        setTheme(prefersDark.matches);
+
+        themeBtn.addEventListener('click', () => {
+            setTheme(!document.body.classList.contains('dark-mode'));
+        });
+
+        document.getElementById('darkmode-toggle').addEventListener('change', (e) => {
+            setTheme(e.target.checked);
+        });
+
+        // Toggle stabilizer dynamically
+        document.getElementById('stabilizer-toggle').addEventListener('change', (e) => {
+            stabilizerEnabled = e.target.checked;
+            showToast(stabilizerEnabled ? "手ぶれ補正を有効にしました" : "手ぶれ補正を無効にしました");
+        });
+
+        // --- 14. Squishy interaction effects ---
+        document.addEventListener('mousedown', (e) => {
+            const target = e.target.closest('.glass-card, .ai-btn, .nav-item, .tool-btn, .color-dot');
+            if (target) {
+                target.classList.remove('squish-active');
+                void target.offsetWidth; // force redraw
+                target.classList.add('squish-active');
+                
+                setTimeout(() => {
+                    target.classList.remove('squish-active');
+                }, 400);
+            }
+        });
+
+        // Run On Load
+        window.onload = () => {
+            initCanvas();
+            initIndexedDB();
+            updateBrushSettings();
+        };
+
+        // Resize observer to align bounds nicely
+        window.addEventListener('resize', () => {
+            resetCanvasTransform();
+        });
+    </script>
+</body>
+</html>
