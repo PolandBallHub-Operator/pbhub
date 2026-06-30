@@ -852,6 +852,14 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+
+                    <div class="toggle-row">
+                        <span>ファストモードの有効化 (会話/進行の高速化)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="fastmode-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="glass-card">
@@ -939,7 +947,8 @@
             apiKey: "",
             modelName: "gemini-2.5-flash-lite",
             isDark: false,
-            currentTheme: 0
+            currentTheme: 0,
+            fastMode: true // デフォルトで有効
         };
 
         // デフォルトアイコンデータ
@@ -1004,6 +1013,7 @@
                     document.getElementById('gemini-api-key').value = systemSettings.apiKey;
                     document.getElementById('gemini-model-name').value = systemSettings.modelName;
                     document.getElementById('darkmode-toggle').checked = systemSettings.isDark;
+                    document.getElementById('fastmode-toggle').checked = systemSettings.fastMode !== false;
                     currentThemeIndex = systemSettings.currentTheme || 0;
                     resolve();
                 };
@@ -1017,11 +1027,13 @@
             const aKey = document.getElementById('gemini-api-key').value.trim();
             const mName = document.getElementById('gemini-model-name').value.trim() || "gemini-2.5-flash-lite";
             const isDark = document.getElementById('darkmode-toggle').checked;
+            const fastMode = document.getElementById('fastmode-toggle').checked;
 
             systemSettings.playerName = pName;
             systemSettings.apiKey = aKey;
             systemSettings.modelName = mName;
             systemSettings.isDark = isDark;
+            systemSettings.fastMode = fastMode;
             systemSettings.currentTheme = currentThemeIndex;
 
             const tx = db.transaction('settings', 'readwrite');
@@ -1680,7 +1692,7 @@
             renderArenaHistory();
             saveCurrentSession();
 
-            // AI応答リクエスト
+            // AI応答リクエスト (ファストモードも確実に機能するように、選択肢のコンテキストを渡す)
             await generateNextAIScenario(`プレイヤーが次の選択肢を実行しました: 「${choiceText}」`);
         }
 
@@ -1713,6 +1725,7 @@
 
             const apiKey = systemSettings.apiKey;
             const model = systemSettings.modelName || "gemini-2.5-flash-lite";
+            const isFastMode = systemSettings.fastMode !== false;
 
             if (!apiKey) {
                 loader.style.display = 'none';
@@ -1722,8 +1735,46 @@
 
             // システムプロンプト設計
             const characterContext = currentPlaySession.characters.map(c => `- ${c.name}: ${c.detail}`).join('\n');
-            const systemPrompt = `
-あなたは究極のTRPGゲームマスターAIです。プレイヤーに最高のエンターテインメントを提供してください。
+            let systemPrompt = "";
+
+            if (isFastMode) {
+                // ファストモード用プロンプト (1つのリクエストで時系列シークエンスを一括返却。4択が選ばれた場合もこれに基づいて一気に展開)
+                systemPrompt = `
+あなたは状況に応じて臨機応変かつ没入感高く対応する、究極のTRPGゲームマスターAIです。プレイヤーに最高のエンターテインメントを提供してください。
+
+【ゲーム世界観】
+${currentPlaySession.synopsis}
+
+【登場可能キャラクター（セリフを喋らせる場合、この名前を「speakerName」に設定してください）】
+${characterContext}
+
+【進行ルール】
+1. 現在進行中のストーリーコンテキスト、およびプレイヤーの最新のアクションに基づいて次の魅力的な展開を生成してください。
+2. ファストモードが有効です。プレイヤーが任意のチャットを入力した場合や、提示された4つの選択肢からいずれかを選択した場合でも、必ずストーリーの進行（ナレーションや状況説明）と、複数のキャラクターたちの対話・アクションを、時系列順の配列（sequence）にまとめて一括で返却してください。
+3. プレイヤーが「選択肢」を選んだ場合も同様です。選ばれた選択肢の結果として生じる、ストーリー進行とキャラクターの反応・掛け合いを複数のシーケンス（sequence）に分けて出力してください。1つのセリフだけで終わらせず、複数のやり取りをまとめてください。
+4. RPG進行形式は「${currentPlaySession.format === 'choices' ? '4択選択型' : 'チャット自由型'}」です。
+${currentPlaySession.format === 'choices' ? '5. 4択選択型の場合、必ずレスポンスの最後に、プレイヤーが次にとることができる行動の選択肢（choices）を厳密に4つ作ってください。' : ''}
+
+【返却構造の厳格な指示】
+必ず以下のJSONフォーマットのみを返却してください。マークダウンブロック（\`\`\`json）などに包まず、生パース可能なJSONテキストとして返却してください。
+
+JSON構造:
+{
+  "sequence": [
+    {
+      "type": "narration", // または "dialogue"
+      "speakerName": "ナレーター", // dialogue の場合はセリフを発するキャラクター名を設定
+      "text": "内容（状況説明、またはキャラクターのセリフ）"
+    }
+    // 必要な数だけ、上から順番に時系列順にナレーションとキャラクター対話を並べてください。最低でも2〜3以上のシーケンスを生成して、豊かなストーリーを展開してください。
+  ],
+  "choices": ["選択肢1の内容", "選択肢2の内容", "選択肢3の内容", "選択肢4の内容"] // 4択型なら必須、チャット型なら空配列
+}
+                `;
+            } else {
+                // 従来モード用プロンプト (1ターンに1ナレーション、1発言のみ)
+                systemPrompt = `
+あなたは状況に応じて臨機応変かつ没入感高く対応する、究極のTRPGゲームマスターAIです。プレイヤーに最高のエンターテインメントを提供してください。
 
 【ゲーム世界観】
 ${currentPlaySession.synopsis}
@@ -1748,7 +1799,8 @@ JSON構造:
   "dialogue": "その登場キャラクターの具体的なセリフ内容（なければ空文字）。",
   "choices": ["選択肢1の内容", "選択肢2の内容", "選択肢3の内容", "選択肢4の内容"] // 4択型なら必須、チャット型なら空配列
 }
-            `;
+                `;
+            }
 
             // 会話履歴コンテキスト
             const lastMessages = currentPlaySession.history.slice(-10).map(m => {
@@ -1791,29 +1843,64 @@ ${promptMessage}
 
                 const parsed = JSON.parse(cleanJson);
 
-                // 1. 地の文/ストーリー展開をナレーションとして記録
-                if (parsed.narration) {
-                    currentPlaySession.history.push({
-                        sender: 'ai',
-                        speakerName: 'ナレーター',
-                        text: parsed.narration,
-                        time: new Date().toISOString()
-                    });
-                }
+                if (isFastMode) {
+                    // AIがファストモード適用中に万が一、従来の単一フォーマットで返してきた場合の補正フォールバック
+                    if (!parsed.sequence || !Array.isArray(parsed.sequence)) {
+                        parsed.sequence = [];
+                        if (parsed.narration) {
+                            parsed.sequence.push({
+                                type: "narration",
+                                speakerName: "ナレーター",
+                                text: parsed.narration
+                            });
+                        }
+                        if (parsed.dialogue) {
+                            parsed.sequence.push({
+                                type: "dialogue",
+                                speakerName: parsed.speakerName || '？？？',
+                                text: parsed.dialogue
+                            });
+                        }
+                    }
 
-                // 2. キャラクターの発言がある場合
-                if (parsed.dialogue) {
-                    currentPlaySession.history.push({
-                        sender: 'ai',
-                        speakerName: parsed.speakerName || '？？？',
-                        text: parsed.dialogue,
-                        time: new Date().toISOString()
+                    // ファストモード時のパース＆履歴反映
+                    parsed.sequence.forEach(item => {
+                        if (item.text) {
+                            currentPlaySession.history.push({
+                                sender: 'ai',
+                                speakerName: item.speakerName || (item.type === 'dialogue' ? '？？？' : 'ナレーター'),
+                                text: item.text,
+                                time: new Date().toISOString()
+                            });
+                        }
                     });
-                }
 
-                // 3. 4択選択肢の設定
-                if (currentPlaySession.format === 'choices' && parsed.choices && parsed.choices.length >= 4) {
-                    currentPlaySession.choices = parsed.choices.slice(0, 4);
+                    if (currentPlaySession.format === 'choices' && parsed.choices && parsed.choices.length >= 4) {
+                        currentPlaySession.choices = parsed.choices.slice(0, 4);
+                    }
+                } else {
+                    // 従来モード時のパース
+                    if (parsed.narration) {
+                        currentPlaySession.history.push({
+                            sender: 'ai',
+                            speakerName: 'ナレーター',
+                            text: parsed.narration,
+                            time: new Date().toISOString()
+                        });
+                    }
+
+                    if (parsed.dialogue) {
+                        currentPlaySession.history.push({
+                            sender: 'ai',
+                            speakerName: parsed.speakerName || '？？？',
+                            text: parsed.dialogue,
+                            time: new Date().toISOString()
+                        });
+                    }
+
+                    if (currentPlaySession.format === 'choices' && parsed.choices && parsed.choices.length >= 4) {
+                        currentPlaySession.choices = parsed.choices.slice(0, 4);
+                    }
                 }
 
                 renderArenaHistory();
@@ -1831,7 +1918,6 @@ ${promptMessage}
                 });
                 
                 if (currentPlaySession.format === 'choices') {
-                    // 最低限のフォールバック選択肢
                     currentPlaySession.choices = [
                         "周りを探索する",
                         "慎重に前に進む",
